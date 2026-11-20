@@ -3,174 +3,1182 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Underworld Game — Official Site</title>
+  <title>UNDERWORLD - 3D Adventure</title>
   <style>
-    /* Global Reset */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background: #0a0a0a; color: #fff; line-height: 1.6; }
-    a { text-decoration: none; color: #ff4444; }
+    :root { --red:#ee3d4d; --gold:#f5ca67; --cyan:#69d5df; --panel:rgba(9,11,17,.92); }
+    * { box-sizing:border-box; }
+    body { margin:0; overflow:hidden; background:#050609; color:#f6f1e7; font-family:"Trebuchet MS","Segoe UI",sans-serif; }
+    canvas { display:block; width:100vw; height:100vh; }
 
-    /* Header */
-    header {
-      background: url('https://picsum.photos/1920/800?blur=2') no-repeat center/cover;
-      height: 100vh;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      text-align: center; padding: 20px;
+    .screen {
+      position:fixed; inset:0; z-index:30; display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(135deg,rgba(6,7,10,.88),rgba(12,13,18,.96));
     }
-    header h1 { font-size: 4rem; color: #ff0000; text-shadow: 2px 2px 10px black; }
-    header p { font-size: 1.3rem; margin: 20px 0; }
-    header button {
-      padding: 12px 25px; font-size: 1.2rem;
-      background: #ff0000; border: none; border-radius: 5px;
-      cursor: pointer; transition: 0.3s;
+    #introScreen {
+      z-index:50;
+      flex-direction:column;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 50% 58%,rgba(193,54,68,.14),transparent 22%),
+        linear-gradient(145deg,#101218 0%,#08090d 58%,#020204 100%);
     }
-    header button:hover { background: #ff4444; }
+    #introScreen::before {
+      content:"";
+      position:absolute;
+      width:150vmax;
+      height:150vmax;
+      border:1px solid rgba(245,202,103,.08);
+      border-radius:50%;
+      box-shadow:0 0 90px rgba(238,61,77,.07),inset 0 0 90px rgba(238,61,77,.04);
+      animation:introPulse 4s ease-in-out infinite alternate;
+    }
+    @keyframes introPulse {
+      from { transform:scale(.74) rotate(0deg); opacity:.45; }
+      to { transform:scale(.88) rotate(8deg); opacity:1; }
+    }
+    .introEyebrow {
+      position:relative;
+      margin-bottom:18px;
+      color:var(--gold);
+      font-size:11px;
+      letter-spacing:.5em;
+      text-transform:uppercase;
+      opacity:0;
+      animation:fadeUp .8s .35s forwards;
+    }
+    .introTitle {
+      position:relative;
+      margin:0;
+      font-size:clamp(64px,12vw,150px);
+      line-height:.78;
+      letter-spacing:.09em;
+      text-align:center;
+      text-shadow:8px 8px 0 #5c1520,0 0 70px rgba(238,61,77,.32);
+      opacity:0;
+      transform:scale(.94);
+      animation:introTitle 1.2s .65s cubic-bezier(.16,1,.3,1) forwards;
+    }
+    @keyframes introTitle {
+      to { opacity:1; transform:scale(1); }
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(10px); }
+      to { opacity:1; transform:translateY(0); }
+    }
+    .introSubtitle {
+      position:relative;
+      max-width:600px;
+      margin:24px 20px 28px;
+      color:#b7b3aa;
+      font-size:clamp(12px,2vw,15px);
+      line-height:1.8;
+      letter-spacing:.1em;
+      text-align:center;
+      text-transform:uppercase;
+      opacity:0;
+      animation:fadeUp .8s 1.35s forwards;
+    }
+    #introEnter {
+      position:relative;
+      border:1px solid #f5d98d;
+      min-width:210px;
+      padding:15px 28px;
+      background:linear-gradient(135deg,#b62d40,#741725);
+      color:white;
+      font-size:13px;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      cursor:pointer;
+      opacity:0;
+      clip-path:polygon(9px 0,100% 0,calc(100% - 9px) 100%,0 100%);
+      animation:fadeUp .8s 1.75s forwards;
+    }
+    #introEnter:hover { filter:brightness(1.18); box-shadow:0 10px 30px rgba(238,61,77,.22); }
 
-    /* Section Styling */
-    section { padding: 60px 20px; max-width: 1200px; margin: auto; }
-    h2 { font-size: 2.5rem; margin-bottom: 20px; text-align: center; color: #ff4444; }
-
-    /* Zones Grid */
-    .zones {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;
+    #menuScreen {
+      display:none;
+      background:
+        radial-gradient(circle at 78% 50%,rgba(180,35,52,.12),transparent 20%),
+        radial-gradient(circle at 20% 70%,rgba(105,213,223,.07),transparent 18%),
+        linear-gradient(135deg,#171923,#07080b);
     }
-    .zone-card {
-      background: #111; padding: 20px; border-radius: 10px;
-      transition: 0.3s; border: 1px solid #333;
+    .menuBox { width:min(760px,calc(100% - 30px)); text-align:center; }
+    .menuKicker { margin:0 0 8px; color:var(--gold); font-size:10px; letter-spacing:.42em; text-transform:uppercase; }
+    .menuTitle { margin:0 0 20px; font-size:clamp(30px,5vw,50px); letter-spacing:.12em; text-transform:uppercase; }
+    .logo {
+      margin:0; font-size:clamp(52px,9vw,112px); line-height:.82; letter-spacing:.11em; text-shadow:7px 7px 0 #651420,0 0 50px rgba(238,61,77,.32);
     }
-    .zone-card:hover { transform: scale(1.05); border-color: #ff4444; }
-    .zone-card h3 { margin-bottom: 10px; color: #ff0000; }
-
-    /* Table */
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    table, th, td { border: 1px solid #333; }
-    th, td { padding: 10px; text-align: center; }
-    th { background: #222; color: #ff4444; }
-
-    /* Gameplay Steps */
-    .steps { list-style: none; margin-top: 20px; }
-    .steps li { padding: 10px; margin-bottom: 10px; background: #111; border-left: 5px solid #ff4444; }
-
-    /* Coming Soon */
-    .coming-soon {
-      text-align: center;
-      background: linear-gradient(135deg, #111, #222);
-      padding: 80px 20px;
-      margin-top: 50px;
-      border-radius: 10px;
-      border: 2px dashed #ff4444;
+    .tagline { margin:18px 0 28px; color:var(--gold); letter-spacing:.48em; font-size:11px; }
+    .classes { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .classCard {
+      position:relative;
+      height:215px; border:1px solid #343742; background:linear-gradient(160deg,#1b1d27,#0b0c11); color:white;
+      cursor:pointer; clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
     }
-    .coming-soon h2 {
-      font-size: 3rem;
-      color: #ff0000;
-      text-shadow: 0 0 15px #ff4444;
-      animation: flicker 1.5s infinite alternate;
+    .classCard:hover,.classCard.selected { border-color:var(--gold); transform:translateY(-5px); box-shadow:0 18px 40px #000; }
+    .classCard.selected::after {
+      content:"SELECTED";
+      position:absolute;
+      right:-24px;
+      top:18px;
+      width:98px;
+      padding:4px 0;
+      transform:rotate(45deg);
+      background:var(--gold);
+      color:#201a0a;
+      font-size:8px;
+      font-weight:900;
+      letter-spacing:.12em;
     }
-    .coming-soon p {
-      margin-top: 15px;
-      font-size: 1.2rem;
-      color: #ccc;
+    .classIcon { height:125px; display:grid; place-items:center; font-size:72px; filter:drop-shadow(0 12px 8px #000); }
+    .classCard strong { display:block; text-transform:uppercase; letter-spacing:.12em; }
+    .classCard small { color:#aaa79f; }
+    .appearancePanel {
+      display:grid;
+      grid-template-columns:180px 1fr;
+      align-items:center;
+      width:min(760px,100%);
+      margin:18px auto 0;
+      border:1px solid #343742;
+      background:rgba(11,12,17,.82);
+      text-align:left;
+    }
+    .characterPreview {
+      height:150px;
+      display:grid;
+      place-items:center;
+      border-right:1px solid #343742;
+      background:radial-gradient(circle,rgba(105,213,223,.14),transparent 62%);
+    }
+    #previewFigure {
+      position:relative;
+      width:74px;
+      height:112px;
+      border-radius:38px 38px 18px 18px;
+      background:#263a48;
+      box-shadow:inset 0 0 0 5px #69b1b9,0 18px 22px rgba(0,0,0,.55);
+      transition:.2s;
+    }
+    #previewFigure::before {
+      content:"";
+      position:absolute;
+      left:18px;
+      top:-18px;
+      width:38px;
+      height:38px;
+      border-radius:50%;
+      background:#c8a58a;
+      box-shadow:0 0 0 5px rgba(0,0,0,.18);
+    }
+    #previewFigure::after {
+      content:"";
+      position:absolute;
+      left:29px;
+      top:-8px;
+      width:16px;
+      height:6px;
+      border-radius:0 0 8px 8px;
+      background:#181923;
+    }
+    .appearanceControls { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:12px 14px; }
+    .appearanceControls label { color:#aaa79f; font-size:9px; letter-spacing:.12em; text-transform:uppercase; }
+    .appearanceControls input[type="text"] {
+      width:100%; margin-top:5px; border:1px solid #454852; padding:9px;
+      background:#15171e; color:white; outline:none; text-transform:uppercase;
+    }
+    .colorRow { display:flex; gap:7px; margin-top:6px; }
+    .colorSwatch {
+      width:25px; height:25px; border:2px solid #777; border-radius:50%;
+      cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,.4);
+    }
+    .colorSwatch.selected { border-color:#fff6c8; box-shadow:0 0 10px var(--gold); }
+    .outfitRow { display:flex; gap:6px; margin-top:6px; }
+    .outfitButton {
+      border:1px solid #454852; padding:7px 8px; background:#171920;
+      color:#ddd; font-size:9px; font-weight:900; text-transform:uppercase; cursor:pointer;
+    }
+    .outfitButton.selected { border-color:var(--gold); color:var(--gold); }
+    #playBtn {
+      margin-top:18px; border:1px solid #ffd77d; padding:16px 38px; background:var(--red); color:white;
+      font-size:16px; font-weight:900; letter-spacing:.12em; text-transform:uppercase; cursor:pointer;
     }
 
-    @keyframes flicker {
-      from { opacity: 1; }
-      to { opacity: 0.6; }
+    #hud { position:fixed; inset:0; z-index:10; pointer-events:none; display:none; }
+    #dangerVignette {
+      position:fixed; inset:0; z-index:9; display:none; pointer-events:none;
+      box-shadow:inset 0 0 150px 45px rgba(155,12,28,.72);
+      animation:dangerPulse .55s infinite alternate;
+    }
+    @keyframes dangerPulse { to { box-shadow:inset 0 0 210px 70px rgba(210,18,42,.82); } }
+    #dangerLabel {
+      position:absolute; left:50%; top:86px; z-index:12; transform:translateX(-50%);
+      display:none; border:1px solid #9d2a38; padding:7px 14px;
+      background:rgba(45,8,14,.88); color:#ff7c87; font-size:10px;
+      font-weight:900; letter-spacing:.22em; text-transform:uppercase;
+    }
+    .topHud {
+      position:absolute; top:14px; left:14px; right:14px; display:flex; justify-content:space-between; align-items:flex-start;
+    }
+    .panel { border:1px solid rgba(255,255,255,.12); background:var(--panel); box-shadow:0 12px 32px rgba(0,0,0,.45); backdrop-filter:blur(5px); }
+    .playerPanel { width:270px; padding:11px 13px; }
+    .nameRow { display:flex; justify-content:space-between; align-items:center; }
+    .nameRow strong { letter-spacing:.12em; text-transform:uppercase; }
+    .level { color:var(--gold); font-size:11px; }
+    .healthTrack { height:12px; margin-top:8px; border:1px solid #73303a; background:#281016; }
+    #healthFill { width:100%; height:100%; background:linear-gradient(90deg,#a6192b,#ef4052); transition:.2s; }
+    .smallStats { display:flex; gap:14px; margin-top:7px; color:#aaa79f; font-size:11px; text-transform:uppercase; }
+    .smallStats b { color:white; }
+
+    .rightHud { display:flex; gap:8px; }
+    #marketButton {
+      border:1px solid #80672e;
+      min-width:94px;
+      padding:9px 10px;
+      background:rgba(89,69,29,.94);
+      color:#ffe59a;
+      font-weight:900;
+      text-transform:uppercase;
+      cursor:pointer;
+      pointer-events:auto;
+    }
+    .resource { min-width:94px; padding:9px 11px; text-align:right; }
+    .resource small { display:block; color:#aaa79f; letter-spacing:.12em; }
+    .resource strong { color:var(--gold); font-size:18px; }
+
+    #miniMap {
+      position:absolute; top:82px; right:14px;
+      width:220px; height:220px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(7,8,12,.9);
+      box-shadow:0 12px 32px rgba(0,0,0,.45);
+    }
+    #miniMapCanvas { width:100%; height:100%; display:block; }
+
+    .zoneCard { position:absolute; left:14px; bottom:14px; width:270px; padding:12px 14px; }
+    .zoneCard {
+      border-left:3px solid var(--zone-accent,var(--cyan));
+      background:linear-gradient(110deg,color-mix(in srgb,var(--zone-accent,var(--cyan)) 13%,transparent),var(--panel) 42%);
+      transition:border-color .3s,background .3s;
+    }
+    .zoneCard small { color:var(--zone-accent,var(--cyan)); letter-spacing:.15em; text-transform:uppercase; }
+    .zoneCard h3 { margin:4px 0 2px; color:var(--zone-title,#fff); text-transform:uppercase; }
+    #zoneIcon { display:inline-block; margin-right:6px; color:var(--zone-accent,var(--gold)); }
+    .quest { border-top:2px solid var(--zone-accent,var(--gold)); transition:border-color .3s; }
+    #miniMap { border-color:var(--zone-accent,rgba(255,255,255,.16)); transition:border-color .3s; }
+    #keyDots { display:flex; gap:5px; margin-top:8px; }
+    #keyDots i { width:9px; height:9px; border:1px solid #777; transform:rotate(45deg); }
+    #keyDots i.on { background:var(--gold); border-color:#ffe39b; box-shadow:0 0 8px var(--gold); }
+
+    .quest { position:absolute; right:14px; bottom:14px; width:310px; padding:12px 14px; }
+    .quest strong { color:var(--gold); text-transform:uppercase; font-size:11px; letter-spacing:.12em; }
+    #objective { margin-top:5px; color:#d1cdc4; font-size:12px; line-height:1.4; }
+
+    #dialogue {
+      position:fixed; left:50%; bottom:112px; z-index:15; transform:translateX(-50%);
+      width:min(600px,calc(100% - 30px)); display:none; padding:12px 16px; pointer-events:none;
+    }
+    #dialogue strong { color:var(--gold); }
+
+    #npcPrompt {
+      position:fixed; left:50%; bottom:168px; z-index:16; transform:translateX(-50%);
+      display:none; border:1px solid #9c7e42; padding:8px 12px;
+      background:rgba(10,11,15,.94); color:#f7e4ad; font-size:11px;
+      letter-spacing:.08em; text-transform:uppercase;
+    }
+    #npcPrompt b { color:white; }
+    #npcDialogue {
+      position:fixed; left:50%; bottom:18px; z-index:38; transform:translateX(-50%);
+      width:min(720px,calc(100% - 30px)); display:none;
+      grid-template-columns:112px 1fr; border:1px solid #5a5050;
+      background:rgba(12,13,18,.98); box-shadow:0 25px 70px rgba(0,0,0,.8);
+    }
+    .npcPortrait {
+      display:grid; place-items:center; min-height:150px;
+      border-right:1px solid #3a3b43; background:radial-gradient(circle,#35202a,transparent 68%);
+      font-size:68px;
+    }
+    .npcConversation { position:relative; padding:16px 18px 14px; }
+    .npcConversation small { color:var(--gold); letter-spacing:.18em; text-transform:uppercase; }
+    .npcConversation h3 { margin:4px 0 8px; text-transform:uppercase; }
+    #npcText { min-height:42px; color:#ddd7cc; line-height:1.55; }
+    #npcChoices { display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; }
+    .npcChoice {
+      border:1px solid #554e4a; padding:8px 11px; background:#1b1d24;
+      color:white; font-size:11px; font-weight:900; text-transform:uppercase; cursor:pointer;
+    }
+    .npcChoice:hover { border-color:var(--gold); background:#29242a; }
+    #closeNpcDialogue {
+      position:absolute; right:10px; top:8px; border:0; background:transparent;
+      color:#aaa69f; cursor:pointer; font-size:16px;
+    }
+    #interactButton {
+      position:fixed; right:104px; bottom:78px; z-index:16; display:none;
+      width:76px; height:76px; border:2px solid #d9b75d; border-radius:50%;
+      background:rgba(92,73,30,.88); color:white; font-weight:900; text-transform:uppercase;
     }
 
-    /* Footer */
-    footer { background: #111; padding: 20px; text-align: center; margin-top: 50px; border-top: 1px solid #333; }
+    .crosshair { position:absolute; left:50%; top:50%; width:18px; height:18px; transform:translate(-50%,-50%); opacity:.7; }
+    .crosshair::before,.crosshair::after { content:""; position:absolute; background:white; }
+    .crosshair::before { left:8px; top:0; width:1px; height:18px; }
+    .crosshair::after { left:0; top:8px; width:18px; height:1px; }
+
+    #controls {
+      position:fixed; left:50%; bottom:14px; z-index:12; transform:translateX(-50%); display:none; gap:5px;
+    }
+      .key { min-width:38px; height:38px; display:grid; place-items:center; border:1px solid #555; background:rgba(10,11,15,.82); font-size:11px; color:#ddd; cursor:pointer; user-select:none; touch-action:none; }
+
+    #attackButton {
+      position:fixed; right:18px; bottom:78px; z-index:16; display:none;
+      width:76px; height:76px; border:2px solid #d05d68; border-radius:50%;
+      background:rgba(150,31,47,.82); color:white; font-weight:900; text-transform:uppercase;
+      box-shadow:0 8px 25px rgba(0,0,0,.55); touch-action:none;
+    }
+    #marketOverlay {
+      position:fixed; inset:0; z-index:35; display:none; align-items:center; justify-content:center;
+      background:rgba(3,4,7,.82); backdrop-filter:blur(7px);
+    }
+    .shopBox { width:min(720px,calc(100% - 30px)); border:1px solid #4d4f57; background:#111319; padding:20px; text-align:center; }
+    .shopBox h2 { margin:0 0 5px; letter-spacing:.14em; text-transform:uppercase; }
+    .shopGrid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:18px 0; }
+    .shopItem { min-height:130px; border:1px solid #343740; background:linear-gradient(145deg,#1d2028,#121318); color:white; cursor:pointer; }
+    .shopItem strong { display:block; color:var(--gold); margin:8px 0; text-transform:uppercase; }
+    .shopItem small { color:#aaa79f; }
+    .shopClose { border:1px solid #64404a; padding:10px 18px; background:#281217; color:white; cursor:pointer; }
+    #megaGate {
+      position:fixed; inset:0; z-index:36; display:none; align-items:center; justify-content:center;
+      background:radial-gradient(circle,rgba(255,220,135,.16),rgba(3,4,6,.96) 55%);
+    }
+    .megaGateBox { text-align:center; }
+    .megaGateBox h2 { margin:0; color:var(--gold); font-size:clamp(42px,8vw,82px); letter-spacing:.12em; }
+    .megaGateBox button { margin-top:18px; border:1px solid #fff1be; padding:14px 26px; background:#a7293a; color:white; font-weight:900; cursor:pointer; }
+
+    #gameOver {
+      position:fixed; inset:0; z-index:40; display:none; align-items:center; justify-content:center;
+      background:rgba(3,4,6,.88);
+    }
+    .gameOverBox { width:min(500px,calc(100% - 30px)); text-align:center; }
+    .gameOverBox h2 { margin:0; color:var(--red); font-size:64px; letter-spacing:.12em; }
+    .gameOverBox button { border:1px solid #ddd; padding:14px 28px; background:#7e202c; color:white; font-weight:900; cursor:pointer; }
+
+    @media (max-width:700px) {
+      .classes { grid-template-columns:1fr; max-height:65vh; overflow:auto; }
+      .classCard { height:150px; display:grid; grid-template-columns:110px 1fr; align-items:center; }
+      .classIcon { height:150px; font-size:58px; }
+      .classCard strong,.classCard small { text-align:left; }
+      .appearancePanel { grid-template-columns:120px 1fr; }
+      .characterPreview { height:170px; }
+      .appearanceControls { grid-template-columns:1fr; }
+      .playerPanel,.zoneCard { width:210px; }
+      .quest { width:220px; }
+      .resource { min-width:70px; }
+      #miniMap { width:140px; height:140px; top:74px; }
+      #controls { display:flex; }
+      #attackButton { display:block; }
+      #interactButton { display:block; }
+      #npcDialogue { grid-template-columns:78px 1fr; bottom:10px; }
+      .npcPortrait { min-height:180px; font-size:48px; }
+      .shopGrid { grid-template-columns:1fr; }
+    }
   </style>
 </head>
 <body>
+  <div id="introScreen" class="screen">
+    <div class="introEyebrow">A Realm Beyond the Living</div>
+    <h1 class="introTitle">UNDERWORLD</h1>
+    <p class="introSubtitle">Frozen wastelands. Burning ruins. Radioactive shadows.<br>Gather the keys. Defeat the monsters. Reach the Mega Gate.</p>
+    <button id="introEnter">Begin the Hunt</button>
+  </div>
 
-  <!-- Hero Banner -->
-  <header>
-    <h1>UNDERWORLD</h1>
-    <p>Escape the darkness, fight the monsters, unlock the Mega Gate. 🔑🔥</p>
-    <button onclick="scrollToContent()">Explore the Game</button>
-  </header>
-
-  <!-- Game Lore -->
-  <section>
-    <h2>Game Story</h2>
-    <p>
-      Welcome to <b>Underworld</b>, a realm of danger and mystery. Explore frozen wastelands, fiery volcanoes, and radioactive ruins.
-      Rescue NPCs, defeat terrifying monsters, and gather 5 keys from each zone to unlock the <b>Mega Gate</b> and escape!
-    </p>
-  </section>
-
-  <!-- Zones -->
-  <section>
-    <h2>Zones</h2>
-    <div class="zones">
-      <div class="zone-card"><h3>❄ Frossbite</h3><p>Bippy, Kimpdses, Headso</p></div>
-      <div class="zone-card"><h3>🌋 Fireball</h3><p>Surprising Monster, Galactopus, Jam Jam</p></div>
-      <div class="zone-card"><h3>☢ Nuclear Zone</h3><p>Meowser, Milan the Villain</p></div>
-      <div class="zone-card"><h3>🏰 Safe Zone</h3><p>Protected by King Milan</p></div>
-      <div class="zone-card"><h3>🛒 Market</h3><p>Upgrades, potions, weapons</p></div>
-      <div class="zone-card"><h3>🏋 Training Zone</h3><p>Practice & train freely</p></div>
-      <div class="zone-card"><h3>🌀 Static Zone</h3><p>Final Boss: The BCob</p></div>
-      <div class="zone-card"><h3>🔥 H3ll</h3><p>Nelson - Survivor NPC</p></div>
+  <div id="menuScreen" class="screen">
+    <div class="menuBox">
+      <p class="menuKicker">Choose Your Hunter</p>
+      <h2 class="menuTitle">The Expedition Begins</h2>
+      <div class="classes">
+        <button class="classCard selected" data-name="Astra" data-icon="🧙" data-power="28" data-speed="5">
+          <div class="classIcon">🧙</div><strong>Astra</strong><small>Light Hunter · Balanced</small>
+        </button>
+        <button class="classCard" data-name="Rook" data-icon="🛡️" data-power="35" data-speed="4.3">
+          <div class="classIcon">🛡️</div><strong>Rook</strong><small>Iron Warrior · Heavy</small>
+        </button>
+        <button class="classCard" data-name="Nyx" data-icon="🥷" data-power="30" data-speed="5.8">
+          <div class="classIcon">🥷</div><strong>Nyx</strong><small>Void Rogue · Fast</small>
+        </button>
+      </div>
+      <div class="appearancePanel">
+        <div class="characterPreview"><div id="previewFigure"></div></div>
+        <div class="appearanceControls">
+          <label>Hunter Name
+            <input id="hunterName" type="text" maxlength="14" value="ASTRA" aria-label="Hunter name">
+          </label>
+          <label>Armor
+            <div class="colorRow" id="armorColors">
+              <button class="colorSwatch selected" data-color="#263a48" data-accent="#69b1b9" style="background:#263a48" aria-label="Blue armor"></button>
+              <button class="colorSwatch" data-color="#3b273f" data-accent="#b36bd1" style="background:#3b273f" aria-label="Purple armor"></button>
+              <button class="colorSwatch" data-color="#3d2d21" data-accent="#d39b55" style="background:#3d2d21" aria-label="Brown armor"></button>
+              <button class="colorSwatch" data-color="#42242a" data-accent="#e65f73" style="background:#42242a" aria-label="Red armor"></button>
+              <button class="colorSwatch" data-color="#263d32" data-accent="#70b98c" style="background:#263d32" aria-label="Green armor"></button>
+            </div>
+          </label>
+          <label>Outfit
+            <div class="outfitRow">
+              <button class="outfitButton selected" data-outfit="Hunter">Hunter</button>
+              <button class="outfitButton" data-outfit="Knight">Knight</button>
+              <button class="outfitButton" data-outfit="Rogue">Rogue</button>
+            </div>
+          </label>
+        </div>
+      </div>
+      <button id="playBtn">Enter Safe Zone</button>
     </div>
-  </section>
+  </div>
 
-  <!-- Monsters -->
-  <section>
-    <h2>Monsters & NPCs</h2>
-    <table>
-      <tr><th>Name</th><th>Power</th><th>Health</th><th>Notes</th></tr>
-      <tr><td>Bippy</td><td>10</td><td>30</td><td>Weak to light</td></tr>
-      <tr><td>Surprising Monster</td><td>?</td><td>?</td><td>Stats revealed in fight</td></tr>
-      <tr><td>Headso</td><td>55</td><td>100</td><td>Freezes if looked at</td></tr>
-      <tr><td>Kimpdses</td><td>90</td><td>0.1</td><td>Kill from behind</td></tr>
-      <tr><td>Milan the Villain</td><td>∞</td><td>100</td><td>Deadly touch</td></tr>
-      <tr><td>Meowser</td><td>105</td><td>95</td><td>Cat Scratch attack</td></tr>
-      <tr><td>Galactopus</td><td>120</td><td>110</td><td>Poison squish (165 dmg)</td></tr>
-      <tr><td>Jam Jam</td><td>100</td><td>1000</td><td>Weak to nose hit</td></tr>
-      <tr><td>The BCob</td><td>∞</td><td>∞</td><td>Kill central eye</td></tr>
-    </table>
-  </section>
+  <canvas id="game"></canvas>
 
-  <!-- Gameplay Loop -->
-  <section>
-    <h2>Gameplay Loop</h2>
-    <ul class="steps">
-      <li>Start in Safe Zone 🏰 → tutorial explains zones</li>
-      <li>Explore zones → fight monsters → collect keys</li>
-      <li>Earn gold & health regen for kills</li>
-      <li>If you die → respawn in Market 🛒</li>
-      <li>Meet Nelson in H3ll 🔥 → get power boost</li>
-      <li>Defeat bosses: Jam Jam, Milan the Villain, The BCob</li>
-      <li>Escape through the Mega Gate 🚪✨</li>
-    </ul>
-  </section>
+  <div id="hud">
+    <div id="dangerVignette"></div>
+    <div id="dangerLabel">Threat Detected</div>
+    <div class="topHud">
+      <div class="panel playerPanel">
+        <div class="nameRow"><strong id="playerName">ASTRA</strong><span class="level">LV. <b id="level">1</b></span></div>
+        <div class="healthTrack"><div id="healthFill"></div></div>
+        <div class="smallStats"><span>HP <b id="healthText">100</b></span><span>POW <b id="powerText">28</b></span><span>EXP <b id="expText">0</b></span></div>
+      </div>
+      <div class="rightHud">
+        <div class="panel resource"><small>GOLD</small><strong id="goldText">500</strong></div>
+        <div class="panel resource"><small>KEYS</small><strong id="keyText">0/20</strong></div>
+        <button id="marketButton">Market</button>
+      </div>
+    </div>
+    <div id="miniMap" class="panel">
+      <canvas id="miniMapCanvas"></canvas>
+    </div>
+    <div class="crosshair"></div>
+    <div class="panel zoneCard">
+      <small id="zoneKind">Safe Territory</small>
+      <h3><span id="zoneIcon">♜</span><span id="zoneName">Safe Zone</span></h3>
+      <div id="keyDots"><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="panel quest">
+      <strong>Current Objective</strong>
+      <div id="objective">Find the portals and collect five keys in each danger zone.</div>
+    </div>
+  </div>
 
-  <!-- Features -->
-  <section>
-    <h2>Special Features</h2>
-    <p>✔ Teleporters in every zone<br>
-       ✔ Training Zone for practice<br>
-       ✔ Safe Zone with protector NPC<br>
-       ✔ Market hub for upgrades & respawn
-    </p>
-  </section>
+  <div class="panel" id="dialogue"></div>
+  <div id="npcPrompt">Press <b>E</b> to speak</div>
+  <div id="npcDialogue">
+    <div class="npcPortrait" id="npcPortrait">♚</div>
+    <div class="npcConversation">
+      <button id="closeNpcDialogue" aria-label="Close dialogue">×</button>
+      <small id="npcRole">Underworld Guide</small>
+      <h3 id="npcName">NPC</h3>
+      <div id="npcText"></div>
+      <div id="npcChoices"></div>
+    </div>
+  </div>
 
-  <!-- Coming Soon -->
-  <section class="coming-soon">
-    <h2>🚨 COMING SOON 🚨</h2>
-    <p>Prepare yourself, warrior... The Underworld awaits. 🔑🔥</p>
-  </section>
+  <div id="controls">
+  <button class="key" data-key="w">W</button><button class="key" data-key="a">A</button><button class="key" data-key="s">S</button><button class="key" data-key="d">D</button>
+  </div>
+  <button id="attackButton">Attack</button>
+  <button id="interactButton">Talk</button>
 
-  <!-- Footer -->
-  <footer>
-    <p>© 2025 Underworld Game. All rights reserved.</p>
-    <p>Follow us: <a href="#">Twitter</a> | <a href="#">Discord</a></p>
-  </footer>
+  <div id="marketOverlay">
+    <div class="shopBox">
+      <h2>Underworld Market</h2>
+      <p>Spend gold to prepare for the next zone.</p>
+      <div class="shopGrid">
+        <button class="shopItem" data-cost="150" data-effect="health"><strong>Potion</strong><small>Restore 40 health<br>150 gold</small></button>
+        <button class="shopItem" data-cost="300" data-effect="power"><strong>Iron Weapon</strong><small>Gain 12 power<br>300 gold</small></button>
+        <button class="shopItem" data-cost="220" data-effect="heal"><strong>Void Armor</strong><small>Restore full health<br>220 gold</small></button>
+      </div>
+      <button class="shopClose" id="closeMarket">Back to the world</button>
+    </div>
+  </div>
+
+  <div id="megaGate">
+    <div class="megaGateBox">
+      <small>20 KEYS ASSEMBLED</small>
+      <h2>MEGA GATE</h2>
+      <p>You escaped the Underworld.</p>
+      <button id="continueButton">Continue Exploring</button>
+    </div>
+  </div>
+
+  <div id="gameOver">
+    <div class="gameOverBox">
+      <h2>FALLEN</h2>
+      <p>You respawned in the Underworld Market.</p>
+      <button id="respawnBtn">Return to Market</button>
+    </div>
+  </div>
 
   <script>
-    function scrollToContent() {
-      window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    let w = 0, h = 0, selected = {name:"Astra", icon:"🧙", power:28, speed:5};
+    let appearance={armor:"#263a48",accent:"#69b1b9",outfit:"Hunter",hunterName:"ASTRA"};
+    let keysPressed = {}, mouse = {x:0,y:0,down:false};
+    let gameStarted = false, lastTime = 0, shake = 0, attackFlash = 0, dialogueTimer = 0;
+
+    function resize() { w = canvas.width = innerWidth * devicePixelRatio; h = canvas.height = innerHeight * devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); w=innerWidth; h=innerHeight; }
+    addEventListener("resize", resize); resize();
+
+    const player = {x:0,y:0,radius:18,angle:0,health:100,maxHealth:100,power:28,speed:5,gold:500,keys:0,exp:0,level:1,icon:"🧙",name:"Astra",invulnerable:0};
+    const zones = [
+      {name:"Safe Zone", kind:"Safe Territory", icon:"♜", color:"#3b3a5c", accent:"#a8b4ef", x:0, y:0, radius:620},
+      {name:"Frossbite", kind:"Frozen Wasteland", icon:"❄", color:"#346d83", accent:"#8ce9ff", x:-2100, y:-1450, radius:760},
+      {name:"Fireball", kind:"Volcanic Ruins", icon:"♨", color:"#75252d", accent:"#ff824f", x:2100, y:-1450, radius:760},
+      {name:"Nuclear Zone", kind:"Radioactive Ruins", icon:"☢", color:"#586b2f", accent:"#c5f05b", x:-2100, y:1450, radius:760},
+      {name:"Static Zone", kind:"The Final Zone", icon:"◉", color:"#433350", accent:"#db8cff", x:2100, y:1450, radius:760},
+      {name:"H3ll", kind:"Survivor Territory", icon:"♨", color:"#743128", accent:"#ff7951", x:-2800, y:0, radius:520},
+      {name:"Training Zone", kind:"Practice Grounds", icon:"✦", color:"#285750", accent:"#74e3c3", x:2800, y:0, radius:520},
+      {name:"Market", kind:"Resupply Hub", icon:"✥", color:"#5a4c31", accent:"#f2c85d", x:0, y:-2350, radius:520}
+    ];
+    const zoneKeys = {Frossbite:0,Fireball:0,"Nuclear Zone":0,"Static Zone":0};
+    let currentZone = zones[0];
+    let marketAutoOpened=false;
+
+    const enemies = [];
+    function addEnemy(name,icon,x,y,power,health,zone,speed=0.8) {
+      enemies.push({name,icon,x,y,spawnX:x,spawnY:y,power,health,maxHealth:health,radius:22,zone,angle:0,hit:0,dead:false,respawn:0,speed,attackCooldown:0});
     }
+    addEnemy("Bippy","🐝",-1920,-1480,10,30,"Frossbite",1.15);
+    addEnemy("Bippy","🐝",-2260,-1240,12,36,"Frossbite",1.2);
+    addEnemy("Headso","🗿",-2050,-1850,55,100,"Frossbite",0.55);
+    addEnemy("Kimpdses","🐺",-2450,-1580,90,1,"Frossbite",1.7);
+    addEnemy("Frost Wraith","👻",-1700,-1100,70,180,"Frossbite",1.05);
+
+    addEnemy("Galactopus","🐙",1980,-1720,120,110,"Fireball",0.75);
+    addEnemy("Surprising Monster","👾",2380,-1280,45,70,"Fireball",1.45);
+    addEnemy("Jam Jam","🍯",2180,-980,100,1000,"Fireball",0.35);
+    addEnemy("Ash Golem","🗿",1700,-1450,145,260,"Fireball",0.55);
+    addEnemy("Fire Imp","😈",2500,-1750,135,150,"Fireball",1.65);
+
+    addEnemy("Meowser","🐱",-1900,1320,105,95,"Nuclear Zone",1.35);
+    addEnemy("Milan the Villain","♛",-2350,1720,999,100,"Nuclear Zone",0.95);
+    addEnemy("Mutant Rat","🐀",-2400,1180,125,180,"Nuclear Zone",1.55);
+    addEnemy("Rad Raptor","🦖",-1750,1780,155,220,"Nuclear Zone",1.25);
+
+    addEnemy("Void Eye","👁",2100,1450,180,300,"Static Zone",0.8);
+    addEnemy("The BCob","👁",2500,1780,999,9999,"Static Zone",0.65);
+    addEnemy("Static Horror","👹",1800,1120,170,350,"Static Zone",1.1);
+
+    addEnemy("Training Dummy","🎯",2800,150,5,50,"Training Zone",0);
+
+    const npcs = [
+      {name:"King Milan",role:"Protector of the Safe Zone",icon:"♚",x:-180,y:-40,zone:"Safe Zone",text:"The 20 keys will open the Mega Gate. Explore every danger zone.",color:"#d9c66e"},
+      {name:"Nelson",role:"Survivor of H3ll",icon:"🧔",x:-2800,y:-100,zone:"H3ll",text:"I survived H3ll. Take this blessing. Your power is increased!",color:"#ef8a55"},
+      {name:"Market Keeper",role:"Merchant of the Underworld",icon:"🧙‍♂️",x:0,y:-2350,zone:"Market",text:"I trade potions and weapons for gold.",color:"#f4c765"}
+    ];
+    let nelsonBlessed=false;
+
+    document.getElementById("introEnter").onclick=()=>{
+      document.getElementById("introScreen").style.display="none";
+      document.getElementById("menuScreen").style.display="flex";
+    };
+
+    document.querySelectorAll(".classCard").forEach(card => card.onclick=()=>{
+      document.querySelectorAll(".classCard").forEach(c=>c.classList.remove("selected"));
+      card.classList.add("selected");
+      selected={name:card.dataset.name,icon:card.dataset.icon,power:+card.dataset.power,speed:+card.dataset.speed};
+      if(!document.getElementById("hunterName").dataset.edited){
+        document.getElementById("hunterName").value=selected.name.toUpperCase();
+        appearance.hunterName=selected.name.toUpperCase();
+      }
+    });
+
+    document.querySelectorAll(".colorSwatch").forEach(swatch=>{
+      swatch.onclick=()=>{
+        document.querySelectorAll(".colorSwatch").forEach(s=>s.classList.remove("selected"));
+        swatch.classList.add("selected");
+        appearance.armor=swatch.dataset.color;
+        appearance.accent=swatch.dataset.accent;
+        const preview=document.getElementById("previewFigure");
+        preview.style.background=appearance.armor;
+        preview.style.boxShadow="inset 0 0 0 5px "+appearance.accent+",0 18px 22px rgba(0,0,0,.55)";
+      };
+    });
+
+    document.querySelectorAll(".outfitButton").forEach(button=>{
+      button.onclick=()=>{
+        document.querySelectorAll(".outfitButton").forEach(b=>b.classList.remove("selected"));
+        button.classList.add("selected");
+        appearance.outfit=button.dataset.outfit;
+        const preview=document.getElementById("previewFigure");
+        preview.style.borderRadius=appearance.outfit==="Rogue"?"22px 22px 12px 12px":appearance.outfit==="Knight"?"18px 18px 8px 8px":"38px 38px 18px 18px";
+        preview.style.transform=appearance.outfit==="Knight"?"scale(1.08)":appearance.outfit==="Rogue"?"skewY(-2deg)":"none";
+      };
+    });
+
+    document.getElementById("hunterName").oninput=e=>{
+      e.target.dataset.edited="true";
+      appearance.hunterName=(e.target.value.trim()||"HUNTER").toUpperCase();
+    };
+
+    document.getElementById("playBtn").onclick=()=>{
+      document.getElementById("menuScreen").style.display="none";
+      document.getElementById("hud").style.display="block";
+      document.getElementById("controls").style.display=innerWidth<700?"flex":"none";
+      Object.assign(player,{power:selected.power,speed:selected.speed,icon:selected.icon,name:selected.name});
+      player.name=appearance.hunterName;
+      player.appearance={...appearance};
+      gameStarted=true;
+      updateHUD();
+      showDialogue("King Milan","The Underworld is open. Gather 5 keys from each zone.");
+    };
+
+    addEventListener("keydown",e=>{
+      keysPressed[e.key.toLowerCase()] = true;
+      if(e.key.toLowerCase()=="e") interact();
+      if(e.code==="Space"){e.preventDefault();attack();}
+      if(e.key==="Escape"){
+        document.getElementById("npcDialogue").style.display="none";
+        document.getElementById("marketOverlay").style.display="none";
+      }
+    });
+    addEventListener("keyup",e=>keysPressed[e.key.toLowerCase()] = false);
+    canvas.addEventListener("mousemove",e=>{
+      mouse.x=e.clientX;mouse.y=e.clientY;
+      player.angle=Math.atan2(mouse.y-h/2,mouse.x-w/2);
+    });
+    canvas.addEventListener("mousedown",()=>{mouse.down=true;player.angle=Math.atan2(mouse.y-h/2,mouse.x-w/2);});
+    addEventListener("mouseup",()=>mouse.down=false);
+    canvas.addEventListener("touchstart",e=>{
+      const t=e.touches[0];mouse.down=true;mouse.x=t.clientX;mouse.y=t.clientY;
+      player.angle=Math.atan2(mouse.y-h/2,mouse.x-w/2);
+    });
+    canvas.addEventListener("touchmove",e=>{
+      const t=e.touches[0];mouse.x=t.clientX;mouse.y=t.clientY;
+      player.angle=Math.atan2(mouse.y-h/2,mouse.x-w/2);
+    });
+    canvas.addEventListener("touchend",()=>mouse.down=false);
+
+    document.querySelectorAll(".key").forEach(button=>{
+      const key=button.dataset.key;
+      button.addEventListener("pointerdown",e=>{e.preventDefault();keysPressed[key]=true;});
+      button.addEventListener("pointerup",()=>keysPressed[key]=false);
+      button.addEventListener("pointerleave",()=>keysPressed[key]=false);
+      button.addEventListener("pointercancel",()=>keysPressed[key]=false);
+    });
+    document.getElementById("attackButton").addEventListener("pointerdown",e=>{
+      e.preventDefault();
+      mouse.down=false;
+      attack();
+    });
+    document.getElementById("interactButton").addEventListener("pointerdown",e=>{
+      e.preventDefault();
+      interact();
+    });
+
+    function worldToScreen(x,y) {
+      return {x:w/2+(x-player.x),y:h/2+(y-player.y)};
+    }
+
+    function update(dt) {
+      if(!gameStarted) return;
+      let dx=0,dy=0;
+      if(keysPressed.w||keysPressed.arrowup) dy-=1;
+      if(keysPressed.s||keysPressed.arrowdown) dy+=1;
+      if(keysPressed.a||keysPressed.arrowleft) dx-=1;
+      if(keysPressed.d||keysPressed.arrowright) dx+=1;
+      if(dx||dy) {
+        const len=Math.hypot(dx,dy);dx/=len;dy/=len;
+        player.x+=dx*player.speed*dt*60;
+        player.y+=dy*player.speed*dt*60;
+      }
+      player.invulnerable=Math.max(0,player.invulnerable-dt);
+      attackFlash=Math.max(0,attackFlash-dt);
+      shake=Math.max(0,shake-dt);
+
+      currentZone=zones.reduce((near,z)=>Math.hypot(player.x-z.x,player.y-z.y)<Math.hypot(player.x-near.x,player.y-near.y)?z:near,zones[0]);
+      updateZoneUI();
+      updateNpcPrompt();
+
+      if(mouse.down && attackFlash<=0) attack();
+
+      for(const enemy of enemies) {
+        if(enemy.dead) {
+          enemy.respawn-=dt;
+          if(enemy.respawn<=0&&enemy.zone===currentZone.name) {
+            enemy.dead=false;
+            enemy.health=enemy.maxHealth;
+            enemy.x=enemy.spawnX;
+            enemy.y=enemy.spawnY;
+          }
+          continue;
+        }
+        if(enemy.zone!==currentZone.name) continue;
+        enemy.hit=Math.max(0,enemy.hit-dt);
+        const dist=Math.hypot(player.x-enemy.x,player.y-enemy.y);
+        if(dist<270) {
+          enemy.angle=Math.atan2(player.y-enemy.y,player.x-enemy.x);
+          enemy.x+=Math.cos(enemy.angle)*enemy.speed*dt*60;
+          enemy.y+=Math.sin(enemy.angle)*enemy.speed*dt*60;
+          enemy.attackCooldown-=dt;
+          if(dist<55&&enemy.attackCooldown<=0&&player.invulnerable<=0) {
+            enemy.attackCooldown=enemy.name==="The BCob"?.8:enemy.name==="Milan the Villain"?.65:1.15;
+            const damage=Math.min(enemy.power,999);
+            hurt(damage);
+          }
+        }
+      }
+    }
+
+    function attack() {
+      attackFlash=.28;
+      shake=.12;
+      let hit=false;
+      for(const enemy of enemies) {
+        if(enemy.dead||enemy.zone!==currentZone.name) continue;
+        const dist=Math.hypot(player.x-enemy.x,player.y-enemy.y);
+        if(dist<115) {
+          const angleTo=Math.atan2(enemy.y-player.y,enemy.x-player.x);
+          const angleDiff=Math.abs(normalizeAngle(angleTo-player.angle));
+          if(angleDiff<1.35||dist<55) {
+            enemy.health-=player.power;
+            enemy.hit=.18;
+            hit=true;
+            const push=Math.atan2(enemy.y-player.y,enemy.x-player.x);
+            enemy.x+=Math.cos(push)*18;
+            enemy.y+=Math.sin(push)*18;
+            if(enemy.health<=0) defeatEnemy(enemy);
+          }
+        }
+      }
+      if(!hit) shake=.04;
+    }
+
+    function defeatEnemy(enemy) {
+      enemy.dead=true;
+      enemy.respawn=8;
+      const boss=["Jam Jam","The BCob","Milan the Villain"].includes(enemy.name);
+      player.gold+=boss?500:80;
+      player.exp+=boss?5:2;
+      player.health=Math.min(player.maxHealth,player.health+12);
+      if(zoneKeys[currentZone.name]!==undefined) {
+        zoneKeys[currentZone.name]=Math.min(5,zoneKeys[currentZone.name]+1);
+        player.keys=Object.values(zoneKeys).reduce((a,b)=>a+b,0);
+      }
+      if(player.exp>=player.level*8) { player.level++;player.maxHealth+=20;player.health=player.maxHealth;player.power+=4; }
+      showDialogue("Victory",enemy.name+" defeated. "+(zoneKeys[currentZone.name]!==undefined?"Zone key collected!":"Training complete."));
+      updateHUD();
+      if(player.keys>=20){
+        document.getElementById("megaGate").style.display="flex";
+      }
+    }
+
+    function hurt(amount) {
+      player.health-=amount;
+      player.invulnerable=.75;
+      shake=.28;
+      updateHUD();
+      if(player.health<=0) {
+        player.health=player.maxHealth;
+        player.gold=Math.max(0,player.gold-100);
+        player.x=0;player.y=-2350;
+        document.getElementById("gameOver").style.display="flex";
+      }
+    }
+
+    function interact() {
+      for(const npc of npcs) {
+        if(npc.zone===currentZone.name&&Math.hypot(player.x-npc.x,player.y-npc.y)<90) {
+          openNpcDialogue(npc);
+          return;
+        }
+      }
+      if(currentZone.name==="Market") openMarket();
+    }
+
+    let activeNpc=null;
+
+    function openNpcDialogue(npc) {
+      activeNpc=npc;
+      document.getElementById("npcPortrait").textContent=npc.icon;
+      document.getElementById("npcRole").textContent=npc.role;
+      document.getElementById("npcName").textContent=npc.name;
+      document.getElementById("npcText").textContent=npc.text;
+      const choices=document.getElementById("npcChoices");
+      choices.innerHTML="";
+
+      if(npc.name==="King Milan"){
+        addNpcChoice("Restore health","King Milan restored your health.",()=>{
+          player.health=player.maxHealth;updateHUD();
+        });
+        addNpcChoice("Ask about the Mega Gate","Gather five keys in Frossbite, Fireball, Nuclear Zone, and Static Zone.");
+      }else if(npc.name==="Nelson"){
+        addNpcChoice(nelsonBlessed?"Blessing received":"Receive H3ll blessing",nelsonBlessed?"Your blessing is already protecting you.":"Nelson granted you 20 power.",()=>{
+          if(!nelsonBlessed){player.power+=20;nelsonBlessed=true;updateHUD();}
+        });
+        addNpcChoice("Ask how to survive","Keep moving, use health potions, and strike monsters while they recover.");
+      }else if(npc.name==="Market Keeper"){
+        addNpcChoice("Open market","Choose an item below.",openMarket);
+        addNpcChoice("Ask for advice","Defeat bosses for better gold rewards and train in dangerous zones.");
+      }
+      addNpcChoice("Farewell","Good luck, hunter.");
+      document.getElementById("npcDialogue").style.display="grid";
+    }
+
+    function addNpcChoice(label,response,action) {
+      const button=document.createElement("button");
+      button.className="npcChoice";
+      button.textContent=label;
+      button.onclick=()=>{
+        document.getElementById("npcText").textContent=response;
+        if(action)action();
+      };
+      document.getElementById("npcChoices").appendChild(button);
+    }
+
+    document.getElementById("closeNpcDialogue").onclick=()=>{
+      document.getElementById("npcDialogue").style.display="none";
+      activeNpc=null;
+    };
+
+    function updateNpcPrompt() {
+      let nearest=null;
+      let nearestDistance=90;
+      if(gameStarted){
+        for(const npc of npcs){
+          if(npc.zone!==currentZone.name)continue;
+          const distance=Math.hypot(player.x-npc.x,player.y-npc.y);
+          if(distance<nearestDistance){nearest=npc;nearestDistance=distance;}
+        }
+      }
+      const prompt=document.getElementById("npcPrompt");
+      prompt.style.display=nearest?"block":"none";
+      if(nearest)prompt.innerHTML="Press <b>E</b> to speak to "+nearest.name;
+    }
+
+    function openMarket() {
+      document.getElementById("marketOverlay").style.display="flex";
+    }
+
+    document.getElementById("marketButton").onclick=openMarket;
+
+    document.querySelectorAll(".shopItem").forEach(item=>{
+      item.onclick=()=>{
+        const cost=Number(item.dataset.cost);
+        if(player.gold<cost){showDialogue("Market Keeper","You need "+cost+" gold.");return;}
+        player.gold-=cost;
+        const effect=item.dataset.effect;
+        if(effect==="health")player.health=Math.min(player.maxHealth,player.health+40);
+        if(effect==="heal")player.health=player.maxHealth;
+        if(effect==="power")player.power+=12;
+        updateHUD();
+        showDialogue("Market Keeper","Purchase complete.");
+      };
+    });
+    document.getElementById("closeMarket").onclick=()=>{
+      document.getElementById("marketOverlay").style.display="none";
+      marketAutoOpened=true;
+    };
+
+    function showDialogue(name,text) {
+      const box=document.getElementById("dialogue");
+      box.innerHTML="<strong>"+name+":</strong> "+text;
+      box.style.display="block";
+      dialogueTimer=4.5;
+    }
+
+    function updateZoneUI() {
+      document.documentElement.style.setProperty("--zone-accent",currentZone.accent);
+      document.documentElement.style.setProperty("--zone-title",currentZone.name==="Safe Zone"?"#f5f2ff":"#fff");
+      document.getElementById("hud").dataset.zone=currentZone.name.toLowerCase().replace(/[^a-z0-9]+/g,"-");
+      document.getElementById("zoneName").textContent=currentZone.name;
+      document.getElementById("zoneIcon").textContent=currentZone.icon;
+      document.getElementById("zoneKind").textContent=currentZone.kind;
+      const dots=document.querySelectorAll("#keyDots i");
+      const amount=zoneKeys[currentZone.name]||0;
+      dots.forEach((dot,i)=>dot.classList.toggle("on",i<amount));
+      const zoneObjectives={
+        "Safe Zone":"Meet King Milan, recover, and use the portals to choose a region.",
+        "Frossbite":"Hunt the frost creatures and recover "+(5-amount)+" more key"+(5-amount===1?"":"s")+".",
+        "Fireball":"Survive the volcanic hunt and recover "+(5-amount)+" more key"+(5-amount===1?"":"s")+".",
+        "Nuclear Zone":"Avoid the radiation hostiles and recover "+(5-amount)+" more key"+(5-amount===1?"":"s")+".",
+        "Static Zone":"Defeat The BCob and recover "+(5-amount)+" more key"+(5-amount===1?"":"s")+".",
+        "H3ll":"Find Nelson and claim his survivor blessing.",
+        "Training Zone":"Practice your attacks on the training dummy.",
+        "Market":"Restock your health and upgrade your weapon."
+      };
+      document.getElementById("objective").textContent=zoneObjectives[currentZone.name]||"Explore the Underworld.";
+      const dangerous=["Frossbite","Fireball","Nuclear Zone","Static Zone","H3ll"].includes(currentZone.name);
+      document.getElementById("dangerVignette").style.display=dangerous?"block":"none";
+      document.getElementById("dangerLabel").style.display=dangerous?"block":"none";
+      if(dangerous){
+        const bossNames={Frossbite:"Frost Creatures Moving",Fireball:"Volcanic Monsters Hunting", "Nuclear Zone":"Radiation Hostiles Active","Static Zone":"BOSS TERRITORY — THE BCob","H3ll":"Survivor Zone"};
+        document.getElementById("dangerLabel").textContent=bossNames[currentZone.name]||"Threat Detected";
+      }
+      if(currentZone.name==="Market"&&!marketAutoOpened){
+        marketAutoOpened=true;
+        openMarket();
+      }
+      if(currentZone.name!== "Market"){
+        marketAutoOpened=false;
+      }
+      if(player.keys>=20) document.getElementById("objective").textContent="MEGA GATE OPEN — You escaped the Underworld!";
+    }
+    function updateHUD() {
+      document.getElementById("healthFill").style.width=(player.health/player.maxHealth*100)+"%";
+      document.getElementById("healthText").textContent=Math.max(0,Math.round(player.health));
+      document.getElementById("powerText").textContent=player.power;
+      document.getElementById("goldText").textContent=player.gold;
+      document.getElementById("keyText").textContent=player.keys+"/20";
+      document.getElementById("expText").textContent=player.exp;
+      document.getElementById("level").textContent=player.level;
+      document.getElementById("playerName").textContent=player.name;
+    }
+
+    function normalizeAngle(a) { while(a>Math.PI)a-=Math.PI*2; while(a<-Math.PI)a+=Math.PI*2; return a; }
+
+    function drawGround() {
+      ctx.fillStyle="#08090d";ctx.fillRect(0,0,w,h);
+      const camX=-player.x+w/2,camY=-player.y+h/2;
+      ctx.strokeStyle="rgba(255,255,255,.025)";
+      ctx.lineWidth=1;
+      for(let x=-3600;x<=3600;x+=60) { const sx=camX+x; if(sx>-50&&sx<w+50){ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx,h);ctx.stroke();} }
+      for(let y=-3000;y<=3000;y+=60) { const sy=camY+y; if(sy>-50&&sy<h+50){ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(w,sy);ctx.stroke();} }
+      for(const z of zones) {
+        const p=worldToScreen(z.x,z.y);
+        const grd=ctx.createRadialGradient(p.x,p.y,20,p.x,p.y,z.radius);
+        grd.addColorStop(0,z.accent+"55");grd.addColorStop(.55,z.color+"88");grd.addColorStop(1,z.color+"05");
+        ctx.fillStyle=grd;ctx.beginPath();ctx.arc(p.x,p.y,z.radius,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle=z.accent+"55";ctx.setLineDash([12,16]);ctx.beginPath();ctx.arc(p.x,p.y,z.radius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+        ctx.fillStyle="rgba(245,241,231,.78)";ctx.font="900 16px Trebuchet MS";ctx.textAlign="center";
+        ctx.fillText(z.name.toUpperCase(),p.x,p.y-z.radius+60);
+      }
+      drawZoneAtmosphere();
+    }
+
+    function drawZoneAtmosphere() {
+      const time=performance.now()/1000;
+      ctx.save();
+      if(currentZone.name==="Frossbite"){
+        ctx.fillStyle="rgba(176,238,255,.55)";
+        for(let i=0;i<70;i++){
+          const x=(i*137+time*18)%w;
+          const y=(i*89+time*34)%h;
+          ctx.globalAlpha=.18+(i%5)*.09;
+          ctx.beginPath();ctx.arc(x,y,1+(i%3),0,Math.PI*2);ctx.fill();
+        }
+      }else if(currentZone.name==="Fireball"||currentZone.name==="H3ll"){
+        for(let i=0;i<34;i++){
+          const x=(i*173+Math.sin(time+i)*24)%w;
+          const y=(i*101-time*(12+i%4)*8)%h;
+          ctx.fillStyle=i%3?"rgba(255,111,59,.55)":"rgba(255,206,102,.72)";
+          ctx.globalAlpha=.25+(i%4)*.12;
+          ctx.beginPath();ctx.arc(x,(y+h)%h,1.5+(i%3),0,Math.PI*2);ctx.fill();
+        }
+      }else if(currentZone.name==="Nuclear Zone"){
+        for(let i=0;i<10;i++){
+          const x=(i*193+71)%w,y=(i*127+43)%h;
+          ctx.strokeStyle="rgba(197,240,91,.16)";
+          ctx.lineWidth=1;
+          ctx.beginPath();ctx.ellipse(x,y,18+(i%3)*8,7+(i%2)*4,0,0,Math.PI*2);ctx.stroke();
+        }
+      }else if(currentZone.name==="Static Zone"){
+        ctx.fillStyle="rgba(219,140,255,.07)";
+        for(let i=0;i<9;i++){
+          const y=(i*83+Math.floor(time*6)%83)%h;
+          ctx.fillRect(0,y,w,(i%3)+1);
+        }
+      }else if(currentZone.name==="Market"){
+        const glow=ctx.createRadialGradient(w/2,h/2,10,w/2,h/2,Math.max(w,h)*.65);
+        glow.addColorStop(0,"rgba(242,200,93,.09)");
+        glow.addColorStop(1,"rgba(242,200,93,0)");
+        ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+      }
+      ctx.restore();
+    }
+
+    function drawShadow(x,y,r=20) {
+      ctx.fillStyle="rgba(0,0,0,.55)";
+      ctx.beginPath();ctx.ellipse(x,y+r*.55,r,r*.28,0,0,Math.PI*2);ctx.fill();
+    }
+
+    function drawCharacter(x,y,icon,angle,scale=1,enemy=false,appearanceOverride=null) {
+      drawShadow(x,y,28*scale);
+      ctx.save();ctx.translate(x,y);ctx.rotate(angle);
+      if(!enemy&&appearanceOverride){
+        ctx.fillStyle=appearanceOverride.armor;
+        ctx.beginPath();
+        if(appearanceOverride.outfit==="Knight"){
+          ctx.moveTo(-24*scale,8*scale);ctx.lineTo(-20*scale,42*scale);ctx.lineTo(20*scale,42*scale);ctx.lineTo(24*scale,8*scale);ctx.closePath();
+        }else if(appearanceOverride.outfit==="Rogue"){
+          ctx.moveTo(-18*scale,5*scale);ctx.lineTo(-28*scale,38*scale);ctx.lineTo(28*scale,38*scale);ctx.lineTo(18*scale,5*scale);ctx.closePath();
+        }else{
+          ctx.moveTo(-20*scale,6*scale);ctx.lineTo(-13*scale,40*scale);ctx.lineTo(13*scale,40*scale);ctx.lineTo(20*scale,6*scale);ctx.closePath();
+        }
+        ctx.fill();
+        ctx.strokeStyle=appearanceOverride.accent;ctx.lineWidth=4*scale;ctx.stroke();
+        ctx.fillStyle=appearanceOverride.accent;
+        ctx.fillRect(-18*scale,18*scale,36*scale,4*scale);
+      }
+      if(enemy){
+        const pulse=1+Math.sin(performance.now()/180)*.06;
+        ctx.strokeStyle="rgba(220,48,67,.55)";
+        ctx.lineWidth=2;
+        ctx.beginPath();ctx.arc(0,0,29*scale*pulse,0,Math.PI*2);ctx.stroke();
+        ctx.fillStyle="rgba(170,20,36,.10)";
+        ctx.beginPath();ctx.arc(0,0,38*scale*pulse,0,Math.PI*2);ctx.fill();
+      }
+      if(enemy){
+        ctx.fillStyle="#241015";
+        ctx.beginPath();ctx.moveTo(-20*scale,6*scale);ctx.lineTo(-13*scale,40*scale);ctx.lineTo(13*scale,40*scale);ctx.lineTo(20*scale,6*scale);ctx.closePath();ctx.fill();
+        ctx.strokeStyle="#a63748";ctx.lineWidth=3*scale;ctx.stroke();
+      }
+      ctx.fillStyle=enemy?"#63303a":(appearanceOverride?appearanceOverride.armor:"#263a48");
+      ctx.beginPath();ctx.arc(0,0,18*scale,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="rgba(255,255,255,.12)";ctx.beginPath();ctx.arc(-5*scale,-7*scale,5*scale,0,Math.PI*2);ctx.fill();
+      ctx.font=(32*scale)+"px Segoe UI Emoji";
+      ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(icon,0,-4*scale);
+      ctx.restore();
+    }
+
+    function drawWorldCharacters() {
+      for(const npc of npcs) {
+        if(npc.zone!==currentZone.name) continue;
+        const p=worldToScreen(npc.x,npc.y);
+        const nearby=Math.hypot(player.x-npc.x,player.y-npc.y)<90;
+        if(nearby){
+          ctx.strokeStyle=npc.color;
+          ctx.lineWidth=3;
+          ctx.beginPath();
+          ctx.ellipse(p.x,p.y+38,42,14,0,0,Math.PI*2);
+          ctx.stroke();
+        }
+        drawCharacter(p.x,p.y,npc.icon,0,1,false);
+        ctx.fillStyle=npc.color;ctx.font="900 12px Trebuchet MS";ctx.textAlign="center";ctx.fillText(npc.name,p.x,p.y-55);
+      }
+      for(const enemy of enemies) {
+        if(enemy.dead||enemy.zone!==currentZone.name) continue;
+        const p=worldToScreen(enemy.x,enemy.y);
+        const boss=["The BCob","Jam Jam","Milan the Villain"].includes(enemy.name);
+        drawCharacter(p.x,p.y,enemy.icon,enemy.angle,boss?1.45:1,true);
+        ctx.fillStyle=boss?"#ff5968":"#f2eee4";ctx.font=(boss?"900 13":"900 11")+"px Trebuchet MS";ctx.textAlign="center";ctx.fillText(enemy.name,p.x,p.y-(boss?68:52));
+        ctx.fillStyle="#351018";ctx.fillRect(p.x-30,p.y-44,60,5);
+        ctx.fillStyle="#e84a57";ctx.fillRect(p.x-30,p.y-44,60*Math.max(0,enemy.health/enemy.maxHealth),5);
+      }
+    }
+
+    function drawPortal() {
+      for(const z of zones) {
+        if(z.name===currentZone.name) continue;
+        const p=worldToScreen(z.x,z.y);
+        if(p.x<-300||p.x>w+300||p.y<-300||p.y>h+300) continue;
+        ctx.fillStyle="rgba(0,0,0,.7)";
+        ctx.fillRect(p.x-35,p.y-60,70,100);
+        ctx.strokeStyle=z.accent;ctx.lineWidth=4;
+        ctx.beginPath();ctx.ellipse(p.x,p.y-12,32,48,0,0,Math.PI*2);ctx.stroke();
+        ctx.fillStyle=z.accent+"22";ctx.beginPath();ctx.ellipse(p.x,p.y-12,27,43,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle="#fff";ctx.font="900 11px Trebuchet MS";ctx.textAlign="center";ctx.fillText(z.name,p.x,p.y+75);
+      }
+    }
+
+    function drawAttack() {
+      if(attackFlash<=0)return;
+      const p=worldToScreen(player.x,player.y);
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(player.angle);ctx.globalAlpha=attackFlash/.28;
+      ctx.strokeStyle="#fff";ctx.lineWidth=5;ctx.beginPath();ctx.arc(0,0,72,-.7,.7);ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawMiniMap() {
+      const mapCanvas=document.getElementById("miniMapCanvas");
+      const mapCtx=mapCanvas.getContext("2d");
+      const rect=mapCanvas.getBoundingClientRect();
+      if(mapCanvas.width!==Math.round(rect.width*devicePixelRatio)||mapCanvas.height!==Math.round(rect.height*devicePixelRatio)){
+        mapCanvas.width=Math.round(rect.width*devicePixelRatio);
+        mapCanvas.height=Math.round(rect.height*devicePixelRatio);
+      }
+      mapCtx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+      const mw=rect.width,mh=rect.height;
+      mapCtx.clearRect(0,0,mw,mh);
+      mapCtx.fillStyle="#090b10";
+      mapCtx.fillRect(0,0,mw,mh);
+
+      const minX=-3200,maxX=3200,minY=-2600,maxY=2100;
+      const scaleX=(mw-26)/(maxX-minX);
+      const scaleY=(mh-26)/(maxY-minY);
+      const mapPoint=(x,y)=>({
+        x:13+(x-minX)*scaleX,
+        y:13+(y-minY)*scaleY
+      });
+
+      mapCtx.strokeStyle="rgba(255,255,255,.08)";
+      mapCtx.lineWidth=1;
+      for(let i=0;i<=4;i++){
+        const x=13+(mw-26)*i/4;
+        const y=13+(mh-26)*i/4;
+        mapCtx.beginPath();mapCtx.moveTo(x,13);mapCtx.lineTo(x,mh-13);mapCtx.stroke();
+        mapCtx.beginPath();mapCtx.moveTo(13,y);mapCtx.lineTo(mw-13,y);mapCtx.stroke();
+      }
+
+      zones.forEach(zone=>{
+        const point=mapPoint(zone.x,zone.y);
+        const mapRadius=Math.max(11,zone.radius*(mw-26)/(maxX-minX)*1.15);
+        mapCtx.fillStyle=zone.accent+"38";
+        mapCtx.strokeStyle=zone.accent;
+        mapCtx.lineWidth=zone.name===currentZone.name?2:1;
+        mapCtx.beginPath();mapCtx.arc(point.x,point.y,mapRadius,0,Math.PI*2);mapCtx.fill();mapCtx.stroke();
+
+        mapCtx.fillStyle=zone.accent;
+        mapCtx.beginPath();mapCtx.arc(point.x,point.y,zone.name===currentZone.name?5:3.5,0,Math.PI*2);mapCtx.fill();
+
+        if(mw>=170){
+          mapCtx.fillStyle=zone.name===currentZone.name?"#fff6c8":"#eae5da";
+          mapCtx.font=(zone.name===currentZone.name?"900 ":"")+"9px Trebuchet MS";
+          mapCtx.textAlign="center";
+          mapCtx.shadowColor="#000";
+          mapCtx.shadowBlur=4;
+          mapCtx.fillText(zone.name.replace(" Zone",""),point.x,point.y+mapRadius+12);
+          mapCtx.shadowBlur=0;
+        }
+      });
+
+      const playerPoint=mapPoint(player.x,player.y);
+      mapCtx.save();
+      mapCtx.translate(playerPoint.x,playerPoint.y);
+      mapCtx.rotate(player.angle+Math.PI/2);
+      mapCtx.fillStyle="#ffffff";
+      mapCtx.beginPath();mapCtx.moveTo(0,-7);mapCtx.lineTo(5,5);mapCtx.lineTo(-5,5);mapCtx.closePath();mapCtx.fill();
+      mapCtx.restore();
+      mapCtx.fillStyle="#f4c765";
+      mapCtx.font="900 9px Trebuchet MS";
+      mapCtx.textAlign="left";
+      mapCtx.fillText("N",mw-20,11);
+    }
+
+    function draw() {
+      ctx.save();
+      if(shake>0)ctx.translate((Math.random()-.5)*8,(Math.random()-.5)*8);
+      drawGround();drawPortal();drawWorldCharacters();
+      const p=worldToScreen(player.x,player.y);
+      drawCharacter(p.x,p.y,player.icon,player.angle,1,false,player.appearance||appearance);drawAttack();
+      ctx.restore();
+      drawMiniMap();
+    }
+
+    function frame(time) {
+      const dt=Math.min(.033,(time-lastTime)/1000||0);lastTime=time;
+      if(dialogueTimer>0){dialogueTimer-=dt;if(dialogueTimer<=0)document.getElementById("dialogue").style.display="none";}
+      update(dt);draw();
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    document.getElementById("respawnBtn").onclick=()=>{
+      document.getElementById("gameOver").style.display="none";
+      currentZone=zones.find(z=>z.name==="Market");
+      player.x=0;player.y=-2350;
+      showDialogue("Market Keeper","Respawn complete. Potions and weapons are available.");
+    };
+    document.getElementById("continueButton").onclick=()=>{
+      document.getElementById("megaGate").style.display="none";
+      showDialogue("Underworld","The Mega Gate remains open. Explore as you wish.");
+    };
   </script>
 </body>
 </html>
