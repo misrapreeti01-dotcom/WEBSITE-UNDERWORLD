@@ -1,0 +1,3058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UNDERWORLD - 3D Adventure</title>
+  <style>
+    :root { --red:#ee3d4d; --gold:#f5ca67; --cyan:#69d5df; --panel:rgba(9,11,17,.92); }
+    * { box-sizing:border-box; }
+    body { margin:0; overflow:hidden; background:#050609; color:#f6f1e7; font-family:"Trebuchet MS","Segoe UI",sans-serif; }
+    canvas { display:block; width:100vw; height:100vh; }
+
+    .screen {
+      position:fixed; inset:0; z-index:30; display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(135deg,rgba(6,7,10,.88),rgba(12,13,18,.96));
+    }
+    #introScreen {
+      z-index:50;
+      flex-direction:column;
+      overflow:hidden;
+      background:
+        radial-gradient(ellipse at 50% 72%,rgba(231,158,73,.2),transparent 32%),
+        radial-gradient(ellipse at 50% 45%,rgba(136,35,53,.28),transparent 44%),
+        linear-gradient(180deg,#090b12 0%,#14131a 48%,#261613 76%,#050609 100%);
+    }
+    #introScreen::before {
+      content:"";
+      position:absolute;
+      left:50%;top:52%;
+      width:min(88vw,900px);height:min(88vw,900px);
+      transform:translate(-50%,-50%);
+      border:1px solid rgba(245,202,103,.24);
+      border-radius:50%;
+      box-shadow:0 0 42px rgba(245,202,103,.12),inset 0 0 110px rgba(238,61,77,.1),0 0 0 24px rgba(245,202,103,.035),0 0 0 60px rgba(245,202,103,.025);
+      animation:introPulse 7s ease-in-out infinite alternate,introRotate 90s linear infinite;
+      pointer-events:none;
+    }
+    #introScreen::after {
+      content:"";
+      position:absolute;inset:0;pointer-events:none;
+      background:
+        linear-gradient(90deg,rgba(0,0,0,.52),transparent 26%,transparent 74%,rgba(0,0,0,.52)),
+        linear-gradient(0deg,rgba(0,0,0,.58),transparent 40%,rgba(0,0,0,.18));
+    }
+    .introHorizon {
+      position:absolute;left:0;right:0;bottom:-4vh;height:43vh;
+      background:linear-gradient(0deg,#030406 2%,rgba(8,8,11,.94) 27%,rgba(8,8,11,0) 100%);
+      clip-path:polygon(0 60%,8% 49%,14% 56%,22% 30%,27% 50%,35% 22%,43% 54%,51% 33%,58% 56%,67% 25%,74% 52%,83% 18%,90% 49%,100% 30%,100% 100%,0 100%);
+      filter:drop-shadow(0 -8px 18px rgba(238,61,77,.14));
+      opacity:.8;
+      pointer-events:none;
+    }
+    .introRift {
+      position:absolute;left:50%;top:52%;width:min(44vw,440px);aspect-ratio:1;
+      transform:translate(-50%,-50%);border:1px solid rgba(255,221,151,.62);border-radius:50%;
+      box-shadow:0 0 32px rgba(255,192,103,.35),inset 0 0 55px rgba(238,61,77,.32),0 0 0 10px rgba(255,218,141,.08),0 0 0 28px rgba(238,61,77,.04);
+      animation:riftPulse 3.8s ease-in-out infinite alternate,riftRotate 48s linear infinite;
+      pointer-events:none;
+    }
+    .introRift::before,.introRift::after {
+      content:"";position:absolute;inset:11%;border:1px solid rgba(245,202,103,.3);border-radius:50%;
+    }
+    .introRift::before { border-style:dashed;animation:riftRotate 36s linear infinite reverse; }
+    .introRift::after { inset:23%;border-color:rgba(238,128,91,.48);box-shadow:0 0 45px rgba(238,61,77,.35); }
+    .introRiftCore {
+      position:absolute;left:50%;top:52%;width:min(19vw,190px);height:min(34vw,330px);
+      transform:translate(-50%,-50%) scaleY(.08);border-radius:50%;
+      background:radial-gradient(ellipse at center,rgba(8,5,12,.98) 0 22%,rgba(38,7,18,.9) 42%,rgba(229,77,65,.4) 68%,transparent 78%);
+      filter:drop-shadow(0 0 35px rgba(239,71,71,.52));
+      opacity:0;animation:riftOpen 1.4s .25s cubic-bezier(.16,1,.3,1) forwards;
+      pointer-events:none;
+    }
+    .introCitadel {
+      position:absolute;z-index:0;left:50%;bottom:8vh;width:min(100%,1120px);height:34vh;
+      transform:translateX(-50%);background:linear-gradient(180deg,#30191d,#08090d 76%);
+      clip-path:polygon(0 100%,0 68%,9% 68%,9% 52%,12% 52%,12% 66%,23% 66%,23% 46%,27% 46%,27% 26%,29% 46%,29% 66%,38% 66%,38% 56%,44% 56%,44% 35%,47% 35%,47% 18%,50% 35%,50% 67%,60% 67%,60% 48%,64% 48%,64% 64%,73% 64%,73% 38%,77% 38%,77% 62%,87% 62%,87% 49%,91% 49%,91% 67%,100% 67%,100% 100%);
+      filter:drop-shadow(0 -8px 20px rgba(238,61,77,.18));
+      pointer-events:none;
+    }
+    .introHunter {
+      position:absolute;z-index:1;left:78%;bottom:8vh;width:104px;height:220px;
+      transform:translateX(-50%);scale:1;filter:drop-shadow(0 0 20px rgba(255,132,88,.35));
+      pointer-events:none;animation:introHunterRise 1.2s 1.1s cubic-bezier(.16,1,.3,1) both;
+    }
+    .introHunterCloak {
+      position:absolute;left:15px;top:69px;width:72px;height:130px;
+      background:linear-gradient(90deg,#090a10,#27202a 52%,#090a10);
+      clip-path:polygon(25% 0,75% 0,100% 100%,50% 78%,0 100%);
+    }
+    .introHunterBody {
+      position:absolute;left:31px;top:64px;width:42px;height:82px;
+      background:linear-gradient(90deg,#17171d,#5c3a36 45%,#17171d);
+      clip-path:polygon(23% 0,77% 0,100% 88%,75% 100%,25% 100%,0 88%);
+    }
+    .introHunterHead {
+      position:absolute;left:39px;top:39px;width:26px;height:31px;border-radius:48% 48% 40% 40%;
+      background:linear-gradient(90deg,#17171d,#8c5445 48%,#17171d);
+      box-shadow:0 0 8px rgba(255,190,115,.45);
+    }
+    .introHunterLeg {
+      position:absolute;top:133px;width:16px;height:63px;border-radius:4px;
+      background:linear-gradient(90deg,#101117,#34313a 55%,#111218);
+      transform-origin:top center;
+    }
+    .introHunterLegLeft { left:35px;transform:rotate(5deg); }
+    .introHunterLegRight { right:34px;transform:rotate(-5deg); }
+    .introHunterBlade {
+      position:absolute;left:77px;top:57px;width:3px;height:120px;
+      transform:rotate(22deg);transform-origin:top center;
+      background:linear-gradient(180deg,#fff1ca,#e3a65c 45%,#554b4b);
+      box-shadow:0 0 10px rgba(255,222,159,.9);
+    }
+    .introHunterBlade::after {
+      content:"";position:absolute;left:-4px;top:33px;width:11px;height:3px;
+      background:#c79761;box-shadow:0 0 7px rgba(255,196,115,.6);
+    }
+    @keyframes introHunterRise {
+      from { opacity:0;transform:translate(-50%,22px); }
+      to { opacity:.96;transform:translate(-50%,0); }
+    }
+    .introEmbers {
+      position:absolute;z-index:0;inset:0;overflow:hidden;pointer-events:none;
+      background:
+        radial-gradient(2px 2px at 14% 82%,#ffd986 55%,transparent 100%),
+        radial-gradient(2px 2px at 78% 72%,#ff775b 55%,transparent 100%),
+        radial-gradient(1px 1px at 34% 64%,#fff0c1 55%,transparent 100%),
+        radial-gradient(2px 2px at 91% 88%,#f5ca67 55%,transparent 100%),
+        radial-gradient(1px 1px at 58% 92%,#ff775b 55%,transparent 100%);
+      animation:emberDrift 7s ease-in-out infinite alternate;
+    }
+    .introEmbers::before,.introEmbers::after {
+      content:"";position:absolute;inset:0;
+      background:
+        radial-gradient(2px 2px at 22% 92%,#ffad62 55%,transparent 100%),
+        radial-gradient(1px 1px at 48% 78%,#fff0c1 55%,transparent 100%),
+        radial-gradient(2px 2px at 69% 95%,#f5ca67 55%,transparent 100%),
+        radial-gradient(1px 1px at 84% 61%,#ff775b 55%,transparent 100%);
+      animation:emberDrift 9s 1s ease-in-out infinite alternate-reverse;
+    }
+    .introEmbers::after { transform:translateY(12px);opacity:.45;animation-duration:5.5s; }
+    .introLightning {
+      position:absolute;z-index:0;inset:0;opacity:0;pointer-events:none;
+      background:radial-gradient(ellipse at 50% 48%,rgba(255,226,174,.4),rgba(255,85,81,.13) 25%,transparent 66%);
+      animation:riftFlash 8s 1.2s ease-out infinite;
+    }
+    .introLetterbox {
+      position:absolute;z-index:2;inset:0;pointer-events:none;
+      animation:letterboxOpen 1.1s .3s cubic-bezier(.16,1,.3,1) both;
+    }
+    .introLetterbox::before,.introLetterbox::after {
+      content:"";position:absolute;left:0;right:0;height:4vh;background:#030406;
+      box-shadow:0 0 24px rgba(0,0,0,.75);
+    }
+    .introLetterbox::before { top:0; }
+    .introLetterbox::after { bottom:0; }
+    .introStars {
+      position:absolute;inset:0;opacity:.5;pointer-events:none;
+      background-image:radial-gradient(2px 2px at 12% 22%,#fff5d2 60%,transparent),radial-gradient(1px 1px at 76% 18%,#fff 60%,transparent),radial-gradient(2px 2px at 87% 48%,#f5ca67 60%,transparent),radial-gradient(1px 1px at 24% 68%,#fff 60%,transparent),radial-gradient(1px 1px at 64% 38%,#fff 60%,transparent);
+      animation:starDrift 12s ease-in-out infinite alternate;
+    }
+    @keyframes introRotate { to { rotate:360deg; } }
+    @keyframes riftRotate { to { rotate:360deg; } }
+    @keyframes riftPulse {
+      from { opacity:.62;scale:.92;filter:brightness(.85); }
+      to { opacity:1;scale:1.04;filter:brightness(1.3); }
+    }
+    @keyframes riftOpen {
+      65% { opacity:1;transform:translate(-50%,-50%) scaleY(1.12); }
+      100% { opacity:.88;transform:translate(-50%,-50%) scaleY(1); }
+    }
+    @keyframes riftFlash {
+      0%,78%,100% { opacity:0; }
+      79% { opacity:.72; }
+      80% { opacity:.08; }
+      81% { opacity:.34; }
+      84% { opacity:0; }
+    }
+    @keyframes emberDrift {
+      to { transform:translateY(-28px);filter:brightness(1.8); }
+    }
+    @keyframes letterboxOpen {
+      from { clip-path:inset(5vh 0); }
+      to { clip-path:inset(0); }
+    }
+    @keyframes starDrift { to { transform:translateY(-12px);opacity:.78; } }
+    @media (prefers-reduced-motion:reduce) {
+      #introScreen::before,.introRift,.introRift::before,.introRiftCore,.introEmbers,.introEmbers::before,.introEmbers::after,.introLightning,.introLetterbox,.introStars,
+      .introHunter,.introEyebrow,.introTitle,.introSubtitle,.introPromise,.introAutoStatus { animation:none; }
+      .introEyebrow,.introTitle,.introSubtitle,.introPromise { opacity:1;transform:none;filter:none; }
+      .introRiftCore { opacity:.88;transform:translate(-50%,-50%) scaleY(1); }
+    }
+    @keyframes introPulse {
+      from { scale:.94;opacity:.55; }
+      to { scale:1.04;opacity:1; }
+    }
+    .introEyebrow {
+      position:relative;z-index:1;
+      margin-bottom:22px;
+      color:#ffe7a7;
+      font-size:10px;
+      letter-spacing:.62em;
+      text-transform:uppercase;
+      opacity:0;
+      text-shadow:0 0 18px rgba(245,202,103,.45);
+      animation:fadeUp .9s .55s forwards;
+    }
+    .introTitle {
+      position:relative;z-index:1;
+      margin:0;
+      font-size:clamp(54px,12vw,154px);
+      line-height:.84;
+      letter-spacing:.12em;
+      text-align:center;
+      color:#f7f0e2;
+      text-shadow:0 2px 0 #c6a86a,8px 10px 0 #541521,0 0 28px rgba(255,218,142,.3),0 0 88px rgba(238,61,77,.45);
+      opacity:0;
+      transform:scale(.72) translateY(28px);
+      filter:blur(14px);
+      animation:introTitle 1.6s .65s cubic-bezier(.16,1,.3,1) forwards;
+    }
+    @keyframes introTitle {
+      to { opacity:1;transform:scale(1) translateY(0);filter:blur(0) drop-shadow(0 0 24px rgba(238,61,77,.24)); }
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(10px); }
+      to { opacity:1; transform:translateY(0); }
+    }
+    .introSubtitle {
+      position:relative;z-index:1;
+      max-width:640px;
+      margin:24px 20px 30px;
+      color:#d5cbb8;
+      font-size:clamp(12px,2vw,15px);
+      line-height:1.8;
+      letter-spacing:.16em;
+      text-align:center;
+      text-transform:uppercase;
+      opacity:0;
+      text-shadow:0 2px 12px #000;
+      animation:fadeUp .9s 1.55s forwards;
+    }
+    .introPromise {
+      position:relative;z-index:1;margin:0 20px 24px;
+      color:#ffbd76;font-size:10px;font-weight:900;letter-spacing:.42em;
+      text-align:center;text-transform:uppercase;text-shadow:0 0 18px rgba(238,61,77,.6);
+      opacity:0;animation:fadeUp .8s 2s forwards;
+    }
+    .introStoryLinks {
+      position:relative;z-index:1;
+      display:flex;flex-wrap:wrap;justify-content:center;gap:10px;
+      margin:14px 18px 0;
+    }
+    .introStoryLinks a {
+      padding:10px 14px;
+      border:1px solid rgba(255,230,163,.45);
+      background:rgba(9,11,18,.62);
+      color:#f5e8c9;
+      font-size:10px;font-weight:900;letter-spacing:.1em;
+      text-decoration:none;text-transform:uppercase;
+      transition:background .2s,border-color .2s,color .2s;
+    }
+    .introStoryLinks a:hover,.introStoryLinks a:focus-visible {
+      border-color:#ffe6a3;background:rgba(245,202,103,.15);color:#fff;
+      outline:none;
+    }
+    @media (max-width:600px) {
+      .introTitle { font-size:clamp(38px,11vw,72px);letter-spacing:.08em; }
+      .introEyebrow { font-size:8px;letter-spacing:.4em; }
+      .introSubtitle { max-width:440px;margin:18px 22px 22px;font-size:11px;letter-spacing:.1em; }
+      .introPromise { font-size:8px;letter-spacing:.22em; }
+      .introStoryLinks { gap:7px;margin-top:10px; }
+      .introStoryLinks a { padding:9px 10px;font-size:8px;letter-spacing:.07em; }
+      .introCitadel { bottom:7vh;height:26vh; }
+      .introHunter { bottom:6vh;scale:.78; }
+    }
+    #musicToggle {
+      position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:60;
+      border:1px solid rgba(245,202,103,.5);padding:9px 12px;
+      background:rgba(8,9,13,.76);color:#f5dfa4;
+      font:900 9px "Trebuchet MS","Segoe UI",sans-serif;letter-spacing:.16em;
+      text-transform:uppercase;cursor:pointer;backdrop-filter:blur(8px);
+      white-space:nowrap;
+    }
+    #musicToggle:hover { border-color:var(--gold);background:rgba(28,20,19,.9); }
+
+    #menuScreen {
+      display:none;
+      overflow:hidden;
+      background:
+        radial-gradient(ellipse at 50% 100%,rgba(196,102,61,.19),transparent 44%),
+        radial-gradient(circle at 78% 32%,rgba(180,35,52,.18),transparent 26%),
+        radial-gradient(circle at 15% 72%,rgba(105,213,223,.1),transparent 28%),
+        linear-gradient(145deg,#171923,#07080b 70%);
+    }
+    #menuScreen::before {
+      content:"";position:absolute;inset:-25%;
+      background:repeating-radial-gradient(ellipse at 50% 52%,transparent 0 84px,rgba(245,202,103,.035) 85px 86px,transparent 87px 145px);
+      animation:menuDrift 40s linear infinite;pointer-events:none;
+    }
+    #menuScreen::after {
+      content:"";position:absolute;inset:0;pointer-events:none;
+      background:linear-gradient(90deg,rgba(0,0,0,.42),transparent 24%,transparent 76%,rgba(0,0,0,.42)),linear-gradient(0deg,rgba(0,0,0,.45),transparent 35%);
+    }
+    @keyframes menuDrift { to { transform:rotate(12deg) scale(1.05); } }
+    .menuBox {
+      position:relative;z-index:1;width:min(820px,calc(100% - 30px));
+      max-height:100vh;overflow-y:auto;padding:28px 0 24px;text-align:center;
+    }
+    .menuKicker { margin:0 0 8px; color:#ffe6a1; font-size:10px; letter-spacing:.48em; text-transform:uppercase; text-shadow:0 0 18px rgba(245,202,103,.3); }
+    .menuTitle { margin:0 0 23px; color:#f4efe4; font-size:clamp(30px,5vw,50px); letter-spacing:.12em; text-transform:uppercase; text-shadow:0 3px 25px rgba(238,61,77,.26); }
+    .logo {
+      margin:0; font-size:clamp(52px,9vw,112px); line-height:.82; letter-spacing:.11em; text-shadow:7px 7px 0 #651420,0 0 50px rgba(238,61,77,.32);
+    }
+    .tagline { margin:18px 0 28px; color:var(--gold); letter-spacing:.48em; font-size:11px; }
+    .classes { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .classCard {
+      position:relative;
+      overflow:hidden;height:215px;border:1px solid #343742;
+      background:radial-gradient(ellipse at 50% 38%,rgba(105,213,223,.1),transparent 54%),linear-gradient(160deg,#1b1d27,#0b0c11);
+      color:white;cursor:pointer;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+      transition:transform .2s,border-color .2s,box-shadow .2s,filter .2s;
+    }
+    .classCard::before {
+      content:"";position:absolute;width:135px;height:135px;left:50%;top:32px;
+      transform:translateX(-50%);border:1px solid rgba(245,202,103,.12);border-radius:50%;
+      box-shadow:0 0 0 12px rgba(245,202,103,.025),0 0 35px rgba(105,213,223,.09);
+      pointer-events:none;
+    }
+    .classCard:hover,.classCard.selected { border-color:var(--gold); transform:translateY(-5px); box-shadow:0 18px 40px #000,0 0 26px rgba(245,202,103,.12); }
+    .classCard.selected { background:radial-gradient(ellipse at 50% 38%,rgba(245,202,103,.15),transparent 58%),linear-gradient(160deg,#25232a,#0b0c11); }
+    .classCard.selected::after {
+      content:"SELECTED";
+      position:absolute;
+      right:-24px;
+      top:18px;
+      width:98px;
+      padding:4px 0;
+      transform:rotate(45deg);
+      background:var(--gold);
+      color:#201a0a;
+      font-size:8px;
+      font-weight:900;
+      letter-spacing:.12em;
+    }
+    .classIcon { position:relative;height:125px;display:grid;place-items:center;font-size:72px;filter:drop-shadow(0 12px 8px #000); }
+    .classCard strong { position:relative;display:block;color:#f8edcf;text-transform:uppercase;letter-spacing:.15em; }
+    .classCard small { position:relative;display:block;margin-top:5px;color:#aaa79f; }
+    .appearancePanel {
+      display:grid;
+      grid-template-columns:180px 1fr;
+      align-items:center;
+      width:min(760px,100%);
+      margin:18px auto 0;
+      border:1px solid rgba(245,202,103,.24);
+      background:linear-gradient(110deg,rgba(105,213,223,.06),rgba(11,12,17,.92) 38%,rgba(238,61,77,.06));
+      box-shadow:0 16px 38px rgba(0,0,0,.32),inset 0 0 35px rgba(255,255,255,.018);
+      text-align:left;
+    }
+    .characterPreview {
+      height:150px;
+      display:grid;
+      place-items:center;
+      border-right:1px solid #343742;
+      background:radial-gradient(circle,rgba(105,213,223,.14),transparent 62%);
+    }
+    .appearanceControls input[type="text"]:focus { border-color:var(--gold);box-shadow:0 0 0 2px rgba(245,202,103,.12); }
+    #previewFigure {
+      position:relative;
+      width:74px;
+      height:112px;
+      border-radius:38px 38px 18px 18px;
+      background:#263a48;
+      box-shadow:inset 0 0 0 5px #69b1b9,0 18px 22px rgba(0,0,0,.55);
+      transition:.2s;
+    }
+    #previewFigure::before {
+      content:"";
+      position:absolute;
+      left:18px;
+      top:-18px;
+      width:38px;
+      height:38px;
+      border-radius:50%;
+      background:#c8a58a;
+      box-shadow:0 0 0 5px rgba(0,0,0,.18);
+    }
+    #previewFigure::after {
+      content:"";
+      position:absolute;
+      left:29px;
+      top:-8px;
+      width:16px;
+      height:6px;
+      border-radius:0 0 8px 8px;
+      background:#181923;
+    }
+    .appearanceControls { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:12px 14px; }
+    .appearanceControls label { color:#aaa79f; font-size:9px; letter-spacing:.12em; text-transform:uppercase; }
+    .appearanceControls input[type="text"] {
+      width:100%; margin-top:5px; border:1px solid #454852; padding:9px;
+      background:#15171e; color:white; outline:none; text-transform:uppercase;
+    }
+    .colorRow { display:flex; gap:7px; margin-top:6px; }
+    .colorSwatch {
+      width:25px; height:25px; border:2px solid #777; border-radius:50%;
+      cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,.4);
+    }
+    .colorSwatch.selected { border-color:#fff6c8; box-shadow:0 0 10px var(--gold); }
+    .outfitRow { display:flex; gap:6px; margin-top:6px; }
+    .outfitButton {
+      border:1px solid #454852; padding:7px 8px; background:#171920;
+      color:#ddd; font-size:9px; font-weight:900; text-transform:uppercase; cursor:pointer;
+    }
+    .outfitButton.selected { border-color:var(--gold); color:var(--gold); }
+    #playBtn {
+      margin-top:20px;border:1px solid #ffe6a3;padding:16px 38px;
+      background:linear-gradient(135deg,#c13a4a,#681923);color:white;
+      font-size:14px;font-weight:900;letter-spacing:.19em;text-transform:uppercase;cursor:pointer;
+      box-shadow:0 0 28px rgba(238,61,77,.18),0 12px 28px rgba(0,0,0,.42);transition:transform .2s,filter .2s;
+    }
+    #playBtn:hover { transform:translateY(-2px);filter:brightness(1.16); }
+
+    #hud { position:fixed; inset:0; z-index:10; pointer-events:none; display:none; }
+    #dangerVignette {
+      position:fixed; inset:0; z-index:9; display:none; pointer-events:none;
+      box-shadow:inset 0 0 150px 45px rgba(155,12,28,.72);
+      animation:dangerPulse .55s infinite alternate;
+    }
+    @keyframes dangerPulse { to { box-shadow:inset 0 0 210px 70px rgba(210,18,42,.82); } }
+    #dangerLabel {
+      position:absolute; left:50%; top:86px; z-index:12; transform:translateX(-50%);
+      display:none; border:1px solid #9d2a38; padding:7px 14px;
+      background:rgba(45,8,14,.88); color:#ff7c87; font-size:10px;
+      font-weight:900; letter-spacing:.22em; text-transform:uppercase;
+    }
+    .topHud {
+      position:absolute; top:14px; left:14px; right:14px; display:flex; justify-content:space-between; align-items:flex-start;
+    }
+    .panel { border:1px solid rgba(255,255,255,.12); background:linear-gradient(145deg,rgba(20,21,28,.94),rgba(7,8,12,.94)); box-shadow:0 12px 32px rgba(0,0,0,.45); backdrop-filter:blur(7px); }
+    .playerPanel {
+      position:relative;width:290px;padding:12px 14px;
+      border:1px solid color-mix(in srgb,var(--zone-accent,var(--red)) 44%,rgba(255,255,255,.12));
+      border-top:2px solid var(--zone-accent,var(--red));
+      background:linear-gradient(120deg,color-mix(in srgb,var(--zone-accent,var(--red)) 10%,transparent),rgba(9,11,17,.95) 52%);
+    }
+    .playerPanel::after,.zoneCard::after,.quest::after {
+      content:"";position:absolute;top:5px;right:5px;width:10px;height:10px;
+      border-top:1px solid var(--zone-accent,var(--gold));border-right:1px solid var(--zone-accent,var(--gold));opacity:.72;
+      pointer-events:none;
+    }
+    .nameRow { display:flex; justify-content:space-between; align-items:center; }
+    .nameRow strong { letter-spacing:.14em;text-transform:uppercase;text-shadow:0 0 15px color-mix(in srgb,var(--zone-accent,var(--red)) 50%,transparent); }
+    .level { color:var(--gold); font-size:11px; }
+    .healthTrack { height:12px;margin-top:8px;border:1px solid #73303a;background:#281016;box-shadow:inset 0 0 6px #000; }
+    #healthFill { width:100%;height:100%;background:linear-gradient(90deg,#a6192b,#ef4052,#ff8790);box-shadow:0 0 10px rgba(238,61,77,.36);transition:.2s; }
+    .smallStats { display:flex; gap:14px; margin-top:7px; color:#aaa79f; font-size:11px; text-transform:uppercase; }
+    .smallStats b { color:white; }
+    .loadoutRow { display:flex; justify-content:space-between; gap:10px; margin-top:8px; padding-top:7px; border-top:1px solid rgba(255,255,255,.1); color:#aaa79f; font-size:10px; text-transform:uppercase; }
+    .loadoutRow b { color:var(--gold); }
+
+    .rightHud { display:flex; gap:8px; align-items:stretch; }
+    #marketButton {
+      border:1px solid rgba(245,202,103,.55);
+      min-width:94px;
+      padding:9px 10px;
+      background:linear-gradient(145deg,rgba(99,75,31,.96),rgba(41,32,19,.96));
+      color:#ffe59a;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      cursor:pointer;
+      pointer-events:auto;
+      box-shadow:0 5px 18px rgba(0,0,0,.35);
+    }
+    #marketButton:hover,.shopItem:hover { border-color:var(--gold); filter:brightness(1.15); transform:translateY(-2px); }
+    #marketButton:focus-visible,.shopItem:focus-visible,.shopClose:focus-visible,#potionButton:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
+    .resource { min-width:94px;padding:9px 11px;text-align:right;border-top:1px solid rgba(245,202,103,.32); }
+    .resource small { display:block;color:#aaa79f;letter-spacing:.16em;text-transform:uppercase; }
+    .resource strong { color:#ffe39a;font-size:18px;text-shadow:0 0 16px rgba(245,202,103,.24); }
+
+    #miniMap {
+      position:absolute; top:82px; right:14px;
+      width:220px; height:220px;
+      border:1px solid rgba(255,255,255,.16);
+      background:linear-gradient(145deg,rgba(16,18,24,.94),rgba(5,6,9,.96));
+      box-shadow:0 12px 32px rgba(0,0,0,.5),0 0 25px color-mix(in srgb,var(--zone-accent,var(--cyan)) 10%,transparent);
+      padding:5px;
+    }
+    #miniMapCanvas { width:100%; height:100%; display:block; }
+
+    .zoneCard { position:absolute; left:14px; bottom:14px; width:270px; padding:12px 14px; }
+    .zoneCard {
+      position:absolute;overflow:hidden;
+      border:1px solid color-mix(in srgb,var(--zone-accent,var(--cyan)) 35%,rgba(255,255,255,.12));
+      border-left:3px solid var(--zone-accent,var(--cyan));
+      background:linear-gradient(110deg,color-mix(in srgb,var(--zone-accent,var(--cyan)) 18%,transparent),rgba(9,11,17,.94) 56%);
+      box-shadow:0 12px 32px rgba(0,0,0,.42),inset 0 0 22px color-mix(in srgb,var(--zone-accent,var(--cyan)) 6%,transparent);
+      transition:border-color .3s,background .3s;
+    }
+    .zoneCard small { color:var(--zone-accent,var(--cyan)); letter-spacing:.15em; text-transform:uppercase; }
+    .zoneCard h3 { margin:4px 0 2px; color:var(--zone-title,#fff); text-transform:uppercase; }
+    #gateKeyStatus { display:none;margin-top:8px;color:#ffe09a !important;font-size:9px;font-weight:900;letter-spacing:.14em;text-shadow:0 0 12px rgba(245,202,103,.38); }
+    #zoneIcon { display:inline-block; margin-right:6px; color:var(--zone-accent,var(--gold)); }
+    .quest {
+      position:absolute;overflow:hidden;
+      border:1px solid color-mix(in srgb,var(--zone-accent,var(--gold)) 28%,rgba(255,255,255,.1));
+      border-top:2px solid var(--zone-accent,var(--gold));
+      background:linear-gradient(115deg,color-mix(in srgb,var(--zone-accent,var(--gold)) 9%,transparent),rgba(9,11,17,.95) 52%);
+      transition:border-color .3s;
+    }
+    #miniMap { border-color:var(--zone-accent,rgba(255,255,255,.16)); transition:border-color .3s; }
+    #keyDots { display:flex; gap:5px; margin-top:8px; }
+    #keyDots i { width:9px; height:9px; border:1px solid #777; transform:rotate(45deg); }
+    #keyDots i.on { background:var(--gold); border-color:#ffe39b; box-shadow:0 0 8px var(--gold); }
+
+    .quest { right:14px;bottom:14px;width:310px;padding:12px 14px; }
+    .quest strong { color:#ffe6a1;text-transform:uppercase;font-size:10px;letter-spacing:.17em; }
+    #objective { margin-top:6px;color:#d1cdc4;font-size:12px;line-height:1.5; }
+
+    #dialogue {
+      position:fixed; left:50%; bottom:112px; z-index:15; transform:translateX(-50%);
+      width:min(600px,calc(100% - 30px)); display:none; padding:12px 16px; pointer-events:none;
+      border-color:rgba(245,202,103,.4);border-left:3px solid var(--gold);
+      box-shadow:0 15px 44px rgba(0,0,0,.58),0 0 24px rgba(245,202,103,.08);
+    }
+    #dialogue strong { color:var(--gold); }
+
+    #npcPrompt {
+      position:fixed; left:50%; bottom:168px; z-index:16; transform:translateX(-50%);
+      display:none;border:1px solid rgba(245,202,103,.65);padding:8px 12px;
+      background:linear-gradient(120deg,rgba(38,28,16,.96),rgba(10,11,15,.96));color:#f7e4ad;font-size:11px;
+      letter-spacing:.08em; text-transform:uppercase;
+      box-shadow:0 8px 24px rgba(0,0,0,.48);animation:promptRise .22s ease-out;
+    }
+    @keyframes promptRise { from { opacity:0;translate:0 6px; } to { opacity:1;translate:0 0; } }
+    #npcPrompt b { color:white; }
+    #npcDialogue {
+      position:fixed; left:50%; bottom:18px; z-index:38; transform:translateX(-50%);
+      width:min(720px,calc(100% - 30px)); display:none;
+      grid-template-columns:112px 1fr;border:1px solid rgba(245,202,103,.38);
+      background:radial-gradient(circle at 0 0,rgba(238,61,77,.12),transparent 44%),linear-gradient(145deg,rgba(19,19,25,.99),rgba(6,7,10,.99));
+      box-shadow:0 25px 70px rgba(0,0,0,.8),0 0 34px rgba(245,202,103,.08);
+    }
+    .npcPortrait {
+      display:grid; place-items:center; min-height:150px;
+      border-right:1px solid rgba(245,202,103,.18);background:radial-gradient(circle,rgba(126,47,58,.38),transparent 68%);
+      font-size:68px;
+    }
+    .npcConversation { position:relative; padding:16px 18px 14px; }
+    .npcConversation small { color:var(--gold); letter-spacing:.18em; text-transform:uppercase; }
+    .npcConversation h3 { margin:4px 0 8px; text-transform:uppercase; }
+    #npcText { min-height:42px; color:#ddd7cc; line-height:1.55; }
+    #npcChoices { display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; }
+    .npcChoice {
+      border:1px solid #554e4a;padding:8px 11px;background:linear-gradient(145deg,#25232a,#121318);
+      color:white; font-size:11px; font-weight:900; text-transform:uppercase; cursor:pointer;
+      transition:transform .16s,border-color .16s,background .16s;
+    }
+    .npcChoice:hover { border-color:var(--gold);background:#29242a;transform:translateY(-1px); }
+    #closeNpcDialogue {
+      position:absolute; right:10px; top:8px; border:0; background:transparent;
+      color:#aaa69f; cursor:pointer; font-size:16px;
+    }
+    #interactButton {
+      position:fixed; right:104px; bottom:78px; z-index:16; display:none;
+      width:76px; height:76px; border:2px solid #d9b75d; border-radius:50%;
+      background:rgba(92,73,30,.88); color:white; font-weight:900; text-transform:uppercase;
+    }
+
+    .crosshair { position:absolute;left:50%;top:50%;width:24px;height:24px;transform:translate(-50%,-50%);opacity:.66;filter:drop-shadow(0 0 4px rgba(245,202,103,.55)); }
+    .crosshair::before,.crosshair::after { content:"";position:absolute;background:linear-gradient(90deg,transparent,#fff0c1 24%,#fff0c1 76%,transparent); }
+    .crosshair::before { left:11px;top:2px;width:2px;height:20px; }
+    .crosshair::after { left:2px;top:11px;width:20px;height:2px; }
+
+    #controls {
+      position:fixed;left:50%;bottom:14px;z-index:12;transform:translateX(-50%);display:none;gap:5px;
+    }
+    .key { min-width:40px;height:40px;display:grid;place-items:center;border:1px solid rgba(245,202,103,.34);background:linear-gradient(145deg,rgba(28,27,30,.94),rgba(7,8,11,.94));font-size:11px;color:#f5e8c8;cursor:pointer;user-select:none;touch-action:none;box-shadow:0 6px 16px rgba(0,0,0,.4); }
+    .key:active { background:rgba(119,78,36,.94);border-color:var(--gold); }
+    #potionButton {
+      position:fixed; right:18px; bottom:164px; z-index:16; display:none; min-width:82px; height:76px;
+      border:2px solid #66b9a2; border-radius:38px; background:rgba(20,91,72,.9); color:white;
+      font-size:10px; font-weight:900; text-transform:uppercase; touch-action:manipulation;
+      box-shadow:0 8px 24px rgba(0,0,0,.48),0 0 18px rgba(102,185,162,.15);
+    }
+
+    #attackButton {
+      position:fixed; right:18px; bottom:78px; z-index:16; display:none;
+      width:76px; height:76px; border:2px solid #d05d68; border-radius:50%;
+      background:rgba(150,31,47,.82); color:white; font-weight:900; text-transform:uppercase;
+      box-shadow:0 8px 25px rgba(0,0,0,.55); touch-action:none;
+    }
+    #attackButton:hover,#potionButton:hover,#interactButton:hover { filter:brightness(1.15); }
+    #marketOverlay {
+      position:fixed; inset:0; z-index:35; display:none; align-items:center; justify-content:center;
+      background:rgba(3,4,7,.82); backdrop-filter:blur(7px);
+    }
+    .shopBox { width:min(960px,calc(100% - 30px));max-height:calc(100vh - 30px);overflow:auto;border:1px solid rgba(245,202,103,.58);background:radial-gradient(circle at 50% 0,rgba(242,200,93,.2),transparent 42%),repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 1px,transparent 1px 5px),linear-gradient(145deg,#28221b,#11100f 70%);padding:26px;text-align:center;box-shadow:0 28px 90px #000,0 0 45px rgba(245,202,103,.14); }
+    .shopKicker { margin:0 0 7px;color:#ffe6a1;font-size:10px;letter-spacing:.38em;text-transform:uppercase; }
+    .shopBox h2 { margin:0 0 5px;color:#f5eee0;letter-spacing:.16em;text-transform:uppercase;text-shadow:0 0 24px rgba(245,202,103,.18); }
+    .shopBox>p { color:#aaa79f; }
+    .shopGrid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:18px 0; }
+    .shopItem { min-height:150px;padding:14px 10px;border:1px solid #514435;background:radial-gradient(circle at 50% 0,rgba(245,202,103,.12),transparent 56%),linear-gradient(145deg,#28241f,#121318);color:white;cursor:pointer;transition:.18s; }
+    .shopItem .shopIcon { display:block; font-size:30px; }
+    .shopItem strong { display:block; color:var(--gold); margin:8px 0; text-transform:uppercase; letter-spacing:.06em; }
+    .shopItem small { color:#aaa79f; line-height:1.55; }
+    .shopItem:disabled { opacity:.45; cursor:not-allowed; filter:saturate(.55); }
+    .shopItem:disabled:hover { transform:none; filter:saturate(.55); }
+    .shopItem.weaponItem { border-color:#563b43; }
+    .shopItem.potionItem { border-color:#31544e; }
+    .shopItem.materialItem { border-color:#6b5733;background:radial-gradient(circle at 50% 0,rgba(255,219,129,.16),transparent 56%),linear-gradient(145deg,#29251e,#121318); }
+    .shopItem.materialItem .shopIcon { filter:drop-shadow(0 0 10px rgba(245,202,103,.4)); }
+    #shopGold { color:var(--gold); font-weight:900; }
+    .shopClose { border:1px solid #9a5c55;padding:10px 18px;background:linear-gradient(135deg,#402027,#1b1115);color:white;cursor:pointer;transition:filter .2s,transform .2s; }
+    .shopClose:hover { filter:brightness(1.2);transform:translateY(-1px); }
+    #portalOverlay {
+      position:fixed;inset:0;z-index:34;display:none;align-items:center;justify-content:center;
+      padding:18px;background:rgba(3,4,7,.82);backdrop-filter:blur(8px);
+    }
+    .portalBox {
+      width:min(600px,100%);padding:24px;border:1px solid rgba(245,202,103,.42);
+      background:radial-gradient(circle at 50% 0,rgba(105,213,223,.12),transparent 48%),linear-gradient(145deg,#17171d,#08090d);
+      box-shadow:0 28px 90px #000,0 0 42px rgba(105,213,223,.08);text-align:center;
+    }
+    .portalBox small { color:#ffe6a1;font-size:10px;letter-spacing:.35em;text-transform:uppercase; }
+    .portalBox h2 { margin:8px 0;color:#f4efe4;letter-spacing:.14em;text-transform:uppercase; }
+    .portalBox p { color:#aaa79f;font-size:13px; }
+    #portalChoices { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:18px 0; }
+    .portalChoice {
+      min-height:54px;padding:10px;border:1px solid rgba(255,255,255,.15);
+      background:linear-gradient(145deg,#22222a,#101115);color:#f4efe4;
+      font-weight:900;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+    }
+    .portalChoice:hover:not(:disabled) { border-color:var(--zone-accent,var(--gold));filter:brightness(1.2); }
+    .portalChoice:disabled { color:#777;cursor:not-allowed;opacity:.65; }
+    #closePortal { border:1px solid #8a5a52;padding:10px 18px;background:#28171b;color:white;cursor:pointer; }
+    #megaGate {
+      position:fixed; inset:0; z-index:36; display:none; align-items:center; justify-content:center;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 50% 58%,rgba(255,231,166,.24),transparent 9%),
+        radial-gradient(circle at 50% 55%,rgba(214,169,73,.16),transparent 28%),
+        linear-gradient(145deg,rgba(4,5,8,.94),rgba(12,8,8,.98));
+      backdrop-filter:blur(10px);
+    }
+    #megaGate::before {
+      content:"";
+      position:absolute;
+      left:50%; top:50%;
+      width:min(72vw,760px); height:min(72vw,760px);
+      transform:translate(-50%,-50%);
+      border:2px solid rgba(255,225,157,.5);
+      border-radius:50%;
+      box-shadow:
+        0 0 35px rgba(245,202,103,.22),
+        inset 0 0 55px rgba(245,202,103,.12),
+        0 0 0 28px rgba(245,202,103,.025),
+        0 0 0 58px rgba(245,202,103,.018);
+      animation:gateRotate 18s linear infinite;
+    }
+    #megaGate::after {
+      content:"";
+      position:absolute;
+      left:50%; top:50%;
+      width:44%; height:44%;
+      max-width:520px; max-height:520px;
+      transform:translate(-50%,-50%);
+      border:1px solid rgba(255,224,151,.22);
+      border-radius:50%;
+      box-shadow:0 0 110px 45px rgba(245,202,103,.13);
+      animation:gatePulse 2.2s ease-in-out infinite alternate;
+    }
+    @keyframes gateRotate {
+      from { transform:translate(-50%,-50%) rotate(0deg); }
+      to { transform:translate(-50%,-50%) rotate(360deg); }
+    }
+    @keyframes gatePulse {
+      from { opacity:.55; transform:translate(-50%,-50%) scale(.92); }
+      to { opacity:1; transform:translate(-50%,-50%) scale(1.08); }
+    }
+    .megaGateBox {
+      position:relative; z-index:2; width:min(760px,calc(100% - 36px));
+      text-align:center; animation:gateReveal 1.1s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes gateReveal {
+      from { opacity:0; transform:translateY(24px) scale(.94); }
+      to { opacity:1; transform:translateY(0) scale(1); }
+    }
+    .megaGateKicker {
+      display:inline-block; margin-bottom:12px; color:#ffe7a7;
+      font-size:11px; font-weight:900; letter-spacing:.42em; text-transform:uppercase;
+    }
+    .megaGateBox h2 {
+      margin:0; color:var(--gold);
+      font-size:clamp(44px,9vw,96px); line-height:.9; letter-spacing:.08em;
+      text-shadow:0 0 18px rgba(245,202,103,.4),5px 5px 0 #5c1822;
+    }
+    .megaGateBox p { margin:18px 0 14px; color:#eee5ce; font-size:15px; letter-spacing:.06em; }
+    .gateStats {
+      display:flex; justify-content:center; gap:8px; margin:18px auto 22px;
+    }
+    .gateStat {
+      min-width:130px; border-top:1px solid rgba(245,202,103,.5);
+      border-bottom:1px solid rgba(245,202,103,.18); padding:9px 12px;
+      background:rgba(9,10,13,.72);
+    }
+    .gateStat small { display:block; color:#aaa79f; font-size:8px; letter-spacing:.18em; text-transform:uppercase; }
+    .gateStat strong { display:block; margin-top:3px; color:#fff2be; font-size:18px; }
+    .megaGateBox button {
+      min-width:220px; margin-top:4px; border:1px solid #fff1be; padding:15px 28px;
+      background:linear-gradient(135deg,#b92f43,#71202b); color:white;
+      font-weight:900; letter-spacing:.12em; text-transform:uppercase; cursor:pointer;
+      box-shadow:0 14px 35px rgba(0,0,0,.55);
+    }
+    .megaGateBox button:hover { filter:brightness(1.16); transform:translateY(-2px); }
+
+    #gameOver {
+      position:fixed; inset:0; z-index:40; display:none; align-items:center; justify-content:center;
+      background:rgba(3,4,6,.88);
+    }
+    .gameOverBox { width:min(500px,calc(100% - 30px)); text-align:center; }
+    .gameOverBox h2 { margin:0; color:var(--red); font-size:64px; letter-spacing:.12em; }
+    .gameOverBox button { border:1px solid #ddd; padding:14px 28px; background:#7e202c; color:white; font-weight:900; cursor:pointer; }
+
+    @media (max-width:700px) {
+      .classes { grid-template-columns:1fr; max-height:65vh; overflow:auto; }
+      .classCard { height:150px; display:grid; grid-template-columns:110px 1fr; align-items:center; }
+      .classIcon { height:150px; font-size:58px; }
+      .classCard strong,.classCard small { text-align:left; }
+      .appearancePanel { grid-template-columns:120px 1fr; }
+      .characterPreview { height:170px; }
+      .appearanceControls { grid-template-columns:1fr; }
+      .playerPanel,.zoneCard { width:180px; }
+      .playerPanel { padding:9px 10px; }
+      .smallStats { gap:8px; font-size:10px; }
+      .loadoutRow { font-size:9px; }
+      .zoneCard { bottom:252px; width:180px; }
+      .quest { bottom:160px; width:calc(100% - 28px); }
+      #potionButton { bottom:245px; }
+      .resource { min-width:70px; }
+      #miniMap { width:140px; height:140px; top:74px; }
+      #controls { display:flex; }
+      #attackButton { display:block; }
+      #potionButton { display:block; }
+      #interactButton { display:block; }
+      #npcDialogue { grid-template-columns:78px 1fr; bottom:10px; }
+      .npcPortrait { min-height:180px; font-size:48px; }
+      .shopGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .shopBox { padding:18px 14px; }
+      .shopItem { min-height:112px; }
+      .rightHud { gap:5px; }
+      .rightHud .resource { min-width:52px; padding:7px 5px; }
+      #marketButton { min-width:58px; padding:7px 5px; font-size:9px; }
+      .megaGateBox h2 { font-size:clamp(38px,15vw,64px); }
+      .megaGateKicker { font-size:8px; letter-spacing:.24em; }
+      .gateStats { gap:4px; }
+      .gateStat { min-width:82px; padding:8px 5px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="introScreen" class="screen">
+    <div class="introStars" aria-hidden="true"></div>
+    <div class="introLightning" aria-hidden="true"></div>
+    <div class="introEmbers" aria-hidden="true"></div>
+    <div class="introRift" aria-hidden="true"></div>
+    <div class="introRiftCore" aria-hidden="true"></div>
+    <div class="introHorizon" aria-hidden="true"></div>
+    <div class="introCitadel" aria-hidden="true"></div>
+    <div class="introHunter" aria-hidden="true">
+      <span class="introHunterCloak"></span>
+      <span class="introHunterLeg introHunterLegLeft"></span>
+      <span class="introHunterLeg introHunterLegRight"></span>
+      <span class="introHunterBody"></span>
+      <span class="introHunterHead"></span>
+      <span class="introHunterBlade"></span>
+    </div>
+    <div class="introLetterbox" aria-hidden="true"></div>
+    <div class="introEyebrow">A Realm Beneath the Living</div>
+    <h1 class="introTitle">UNDERWORLD</h1>
+    <p class="introSubtitle">Ancient seals are breaking beneath the ruins.<br>Gather the keys, find Nelson, and face the BCob.</p>
+    <div class="introPromise">Your descent begins now</div>
+    <div class="introStoryLinks" aria-label="Enter the Underworld">
+      <a href="ojas2.html?begin=1">Enter Underworld</a>
+    </div>
+  </div>
+  <button id="musicToggle" type="button" aria-pressed="false">Music: Off</button>
+
+  <div id="menuScreen" class="screen">
+    <div class="menuBox">
+      <p class="menuKicker">Choose Your Hunter</p>
+      <h2 class="menuTitle">The Expedition Begins</h2>
+      <div class="classes">
+        <button class="classCard selected" data-name="Astra" data-icon="🧙" data-power="28" data-speed="5">
+          <div class="classIcon">🧙</div><strong>Astra</strong><small>Arcane Adept · 24-damage bolt</small>
+        </button>
+        <button class="classCard" data-name="Rook" data-icon="🛡️" data-power="35" data-speed="4.3">
+          <div class="classIcon">🛡️</div><strong>Rook</strong><small>Iron Vanguard · 37-damage cleave</small>
+        </button>
+        <button class="classCard" data-name="Nyx" data-icon="🥷" data-power="30" data-speed="5.8">
+          <div class="classIcon">🥷</div><strong>Nyx</strong><small>Shadow Rogue · 3 × 9-damage volley</small>
+        </button>
+      </div>
+      <div class="appearancePanel">
+        <div class="characterPreview"><div id="previewFigure"></div></div>
+        <div class="appearanceControls">
+          <label>Hunter Name
+            <input id="hunterName" type="text" maxlength="14" value="ASTRA" aria-label="Hunter name">
+          </label>
+          <label>Armor
+            <div class="colorRow" id="armorColors">
+              <button class="colorSwatch selected" data-color="#263a48" data-accent="#69b1b9" style="background:#263a48" aria-label="Blue armor"></button>
+              <button class="colorSwatch" data-color="#3b273f" data-accent="#b36bd1" style="background:#3b273f" aria-label="Purple armor"></button>
+              <button class="colorSwatch" data-color="#3d2d21" data-accent="#d39b55" style="background:#3d2d21" aria-label="Brown armor"></button>
+              <button class="colorSwatch" data-color="#42242a" data-accent="#e65f73" style="background:#42242a" aria-label="Red armor"></button>
+              <button class="colorSwatch" data-color="#263d32" data-accent="#70b98c" style="background:#263d32" aria-label="Green armor"></button>
+            </div>
+          </label>
+          <label>Outfit
+            <div class="outfitRow">
+              <button class="outfitButton selected" data-outfit="Hunter">Hunter</button>
+              <button class="outfitButton" data-outfit="Knight">Knight</button>
+              <button class="outfitButton" data-outfit="Rogue">Rogue</button>
+            </div>
+          </label>
+        </div>
+      </div>
+      <button id="playBtn">Enter Safe Zone</button>
+    </div>
+  </div>
+
+  <canvas id="game"></canvas>
+
+  <div id="hud">
+    <div id="dangerVignette"></div>
+    <div id="dangerLabel">Threat Detected</div>
+    <div class="topHud">
+      <div class="panel playerPanel">
+        <div class="nameRow"><strong id="playerName">ASTRA</strong><span class="level">LV. <b id="level">1</b></span></div>
+        <div class="healthTrack"><div id="healthFill"></div></div>
+        <div class="smallStats"><span>HP <b id="healthText">100</b></span><span>POW <b id="powerText">28</b></span><span>EXP <b id="expText">0</b></span></div>
+        <div class="loadoutRow"><span>WEAPON <b id="weaponText">Hunter's Edge</b></span><span>POTIONS <b id="potionCount">0</b></span></div>
+      </div>
+      <div class="rightHud">
+        <div class="panel resource"><small>GOLD</small><strong id="goldText">500</strong></div>
+        <div class="panel resource"><small>KEYS</small><strong id="keyText">0/20</strong></div>
+        <button id="marketButton">Market</button>
+      </div>
+    </div>
+    <div id="miniMap" class="panel">
+      <canvas id="miniMapCanvas"></canvas>
+    </div>
+    <div class="crosshair"></div>
+    <div class="panel zoneCard">
+      <small id="zoneKind">Safe Territory</small>
+      <h3><span id="zoneIcon">♜</span><span id="zoneName">Safe Zone</span></h3>
+      <div id="keyDots"><i></i><i></i><i></i><i></i><i></i></div>
+      <small id="gateKeyStatus">✦ MEGA GATE KEY</small>
+    </div>
+    <div class="panel quest">
+      <strong>Current Objective</strong>
+      <div id="objective">Find the portals and collect five keys in each danger zone.</div>
+    </div>
+  </div>
+
+  <div class="panel" id="dialogue"></div>
+  <div id="npcPrompt">Press <b>E</b> to speak</div>
+  <div id="npcDialogue">
+    <div class="npcPortrait" id="npcPortrait">♚</div>
+    <div class="npcConversation">
+      <button id="closeNpcDialogue" aria-label="Close dialogue">×</button>
+      <small id="npcRole">Underworld Guide</small>
+      <h3 id="npcName">NPC</h3>
+      <div id="npcText"></div>
+      <div id="npcChoices"></div>
+    </div>
+  </div>
+
+  <div id="controls">
+  <button class="key" data-key="w">W</button><button class="key" data-key="a">A</button><button class="key" data-key="s">S</button><button class="key" data-key="d">D</button>
+  </div>
+  <button id="attackButton">Attack</button>
+  <button id="potionButton" aria-label="Use a healing potion">Potion · Q ×<span id="mobilePotionCount">0</span></button>
+  <button id="interactButton">Talk</button>
+
+  <div id="marketOverlay">
+    <div class="shopBox">
+      <p class="shopKicker">Tools for the living</p>
+      <h2>Underworld Market</h2>
+      <p>Gold: <span id="shopGold">500</span> · Trade for healing, forged weapons, and rare materials.</p>
+      <div class="shopGrid">
+        <button class="shopItem potionItem" data-cost="100" data-effect="potion"><span class="shopIcon">🧪</span><strong>Health Potion</strong><small>Store 1 potion<br>Restore 45 HP with Q<br>100 gold</small></button>
+        <button class="shopItem potionItem" data-cost="220" data-effect="greaterPotion"><span class="shopIcon">🧴</span><strong>Greater Potion</strong><small>Store 1 potion<br>Fully restore HP with Q<br>220 gold</small></button>
+        <button class="shopItem weaponItem" data-cost="300" data-effect="weapon" data-weapon="Iron Blade" data-role="Rapid forged blade · bonus damage" data-bonus="1" data-cooldown=".28"><span class="shopIcon">⚔️</span><strong>Iron Blade</strong><small>Forged steel · faster attacks<br>Bonus damage · 300 gold</small></button>
+        <button class="shopItem weaponItem" data-cost="650" data-effect="weapon" data-weapon="Wraithfang" data-role="Ranged fang · bonus damage" data-bonus="2" data-cooldown=".38"><span class="shopIcon">🗡️</span><strong>Wraithfang</strong><small>Void-forged · extended range<br>Greater bonus damage · 650 gold</small></button>
+        <button class="shopItem materialItem" data-cost="450" data-effect="powerUpgrade"><span class="shopIcon">🔶</span><strong>Froststeel Ingot</strong><small>Temper your weapon<br>Permanently add 8 power<br>450 gold · one per hunter</small></button>
+        <button class="shopItem materialItem" data-cost="500" data-effect="armorUpgrade"><span class="shopIcon">🛡️</span><strong>Warden's Plate</strong><small>Reinforce your armor<br>Gain 40 maximum health<br>500 gold · one per hunter</small></button>
+      </div>
+      <button class="shopClose" id="closeMarket">Back to the world</button>
+    </div>
+  </div>
+
+  <div id="portalOverlay">
+    <div class="portalBox">
+      <small>Waystones of the Underworld</small>
+      <h2>Choose a Destination</h2>
+      <p>H3ll remains sealed until all 20 regional keys are recovered.</p>
+      <div id="portalChoices"></div>
+      <button id="closePortal">Stay Here</button>
+    </div>
+  </div>
+
+  <div id="megaGate">
+    <div class="megaGateBox">
+      <small class="megaGateKicker">THE MEGA GATE KEY IS CLAIMED</small>
+      <h2>MEGA GATE</h2>
+      <p><strong id="gateHunterName">ASTRA</strong> escaped the Underworld with Nelson.</p>
+      <div class="gateStats">
+        <div class="gateStat"><small>Level</small><strong id="gateLevel">1</strong></div>
+        <div class="gateStat"><small>Power</small><strong id="gatePower">28</strong></div>
+        <div class="gateStat"><small>Keys</small><strong>20 / 20</strong></div>
+      </div>
+      <button id="continueButton">Continue Exploring</button>
+    </div>
+  </div>
+
+  <div id="gameOver">
+    <div class="gameOverBox">
+      <h2>FALLEN</h2>
+      <p>You respawned in the Underworld Market.</p>
+      <button id="respawnBtn">Return to Market</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    let w = 0, h = 0, selected = {name:"Astra", icon:"🧙", power:28, speed:5};
+    let appearance={armor:"#263a48",accent:"#69b1b9",outfit:"Hunter",hunterName:"ASTRA"};
+    let keysPressed = {}, mouse = {x:0,y:0,down:false};
+    let gameStarted = false, lastTime = 0, shake = 0, attackFlash = 0, dialogueTimer = 0;
+
+    function resize() { w = canvas.width = innerWidth * devicePixelRatio; h = canvas.height = innerHeight * devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); w=innerWidth; h=innerHeight; }
+    addEventListener("resize", resize); resize();
+
+    const player = {x:0,y:0,radius:18,angle:0,health:100,maxHealth:100,power:28,speed:5,gold:500,keys:0,exp:0,level:1,icon:"🧙",name:"Astra",className:"Astra",invulnerable:0,weapon:"Hunter's Edge",weaponRole:"Arcane bolt",weaponBonus:0,weaponCooldown:.34,attackCooldown:0,potions:0,greaterPotions:0,marketUpgrades:{froststeel:false,wardenPlate:false},walkPhase:0,isMoving:false};
+    const zones = [
+      {name:"Safe Zone", kind:"Safe Territory", icon:"♜", color:"#3b3a5c", accent:"#a8b4ef", x:0, y:0, radius:470},
+      {name:"Frossbite", kind:"Frozen Wasteland", icon:"❄", color:"#346d83", accent:"#8ce9ff", x:-2100, y:-1450, radius:980},
+      {name:"Fireball", kind:"Volcanic Ruins", icon:"♨", color:"#75252d", accent:"#ff824f", x:2100, y:-1450, radius:980},
+      {name:"Nuclear Zone", kind:"Radioactive Ruins", icon:"☢", color:"#586b2f", accent:"#c5f05b", x:-2100, y:1450, radius:980},
+      {name:"Static Zone", kind:"The Final Zone", icon:"◉", color:"#433350", accent:"#db8cff", x:2100, y:1450, radius:980},
+      {name:"H3ll", kind:"Survivor Territory", icon:"♨", color:"#743128", accent:"#ff7951", x:-2800, y:0, radius:700},
+      {name:"Training Zone", kind:"Practice Grounds", icon:"✦", color:"#285750", accent:"#74e3c3", x:2800, y:0, radius:700},
+      {name:"Market", kind:"Resupply Hub", icon:"✥", color:"#5a4c31", accent:"#f2c85d", x:0, y:-2350, radius:390}
+    ];
+    const zoneKeys = {Frossbite:0,Fireball:0,"Nuclear Zone":0,"Static Zone":0};
+    let currentZone = zones[0];
+    let marketAutoOpened=false;
+    const marketSecretPortal={x:-180,y:-2550,discovered:false};
+    const hellReturnPortal={x:-2740,y:-220};
+    let nelsonSecretAccess=false;
+    let nelsonRiftClosed=false;
+    let nelsonVisitCount=0;
+    let hellUnsealed=false;
+
+    const enemies = [];
+    function addEnemy(name,icon,x,y,power,health,zone,speed=0.8,options={}) {
+      enemies.push({
+        name,icon,x,y,spawnX:x,spawnY:y,power,health,maxHealth:health,
+        radius:options.radius||22,zone,angle:0,hit:0,dead:false,respawn:0,
+        speed,attackCooldown:0,contactCooldown:0,isBoss:!!options.isBoss,isFinalBoss:!!options.isFinalBoss,
+        requiresHell:!!options.requiresHell,keyRecovered:false,
+        keyBearer:options.keyBearer!==undefined?options.keyBearer:(zoneKeys[zone]!==undefined&&!options.isBoss&&!options.isFinalBoss)
+      });
+    }
+    addEnemy("Bippy","🐝",-1920,-1480,18,70,"Frossbite",1.15);
+    addEnemy("Bippy","🐝",-2260,-1240,20,85,"Frossbite",1.2);
+    addEnemy("Headso","🗿",-2050,-1850,27,220,"Frossbite",0.55);
+    addEnemy("Kimpdses","🐺",-2450,-1580,31,190,"Frossbite",1.7);
+    addEnemy("Frost Wraith","👻",-1700,-1100,28,280,"Frossbite",1.05);
+    addEnemy("Glacier Stalker","🐻‍❄️",-2750,-1870,34,720,"Frossbite",0.95,{isBoss:true,radius:34});
+
+    addEnemy("Galactopus","🐙",1980,-1720,32,380,"Fireball",0.75);
+    addEnemy("Surprising Monster","👾",2380,-1280,24,140,"Fireball",1.45);
+    addEnemy("Jam Jam","🍯",2180,-980,40,900,"Fireball",0.48,{isBoss:true,radius:36});
+    addEnemy("Ash Golem","🗿",1700,-1450,38,460,"Fireball",0.55);
+    addEnemy("Fire Imp","😈",2500,-1750,28,240,"Fireball",1.65);
+    addEnemy("Cinder Drake","🐉",2770,-1860,36,520,"Fireball",0.85);
+
+    addEnemy("Meowser","🐱",-1900,1320,26,180,"Nuclear Zone",1.35);
+    addEnemy("Milan the Villain","♛",-2350,1720,42,780,"Nuclear Zone",1.02,{isBoss:true,radius:34});
+    addEnemy("Mutant Rat","🐀",-2400,1180,27,260,"Nuclear Zone",1.55);
+    addEnemy("Rad Raptor","🦖",-1750,1780,34,360,"Nuclear Zone",1.25);
+    addEnemy("Toxic Brute","🧟",-2790,1930,32,420,"Nuclear Zone",0.72);
+    addEnemy("Rad Mite","🐀",-2050,1880,29,260,"Nuclear Zone",1.75);
+
+    addEnemy("Void Eye","👁",2100,1450,32,540,"Static Zone",0.8);
+    addEnemy("Static Horror","👹",1800,1120,34,580,"Static Zone",1.1);
+    addEnemy("Rift Hound","🐺",2780,1150,30,380,"Static Zone",1.35);
+    addEnemy("Riftling","👾",2310,1190,26,240,"Static Zone",1.5);
+    addEnemy("Gloom Leech","👻",2150,1900,30,300,"Static Zone",1.05);
+
+    addEnemy("The BCob","👁",-2860,150,92,3900,"H3ll",1.05,{isFinalBoss:true,radius:50});
+    addEnemy("Hellguard","👹",-3020,-150,42,460,"H3ll",1.2,{requiresHell:true,keyBearer:false});
+    addEnemy("Cinder Warden","🗿",-2570,180,48,540,"H3ll",0.82,{requiresHell:true,keyBearer:false});
+
+    addEnemy("Training Dummy","🎯",2800,150,5,50,"Training Zone",0);
+
+    const projectiles=[];
+    const visualEffects=[];
+    const megaGate={x:210,y:130};
+
+    const npcs = [
+      {name:"King Milan",role:"Protector of the Safe Zone",icon:"♚",x:-180,y:-40,spawnX:-180,spawnY:-40,zone:"Safe Zone",text:"The 20 keys will open the Mega Gate. Explore every danger zone.",color:"#d9c66e",phase:.2,patrolRadius:110,speed:.34},
+      {name:"Nelson",role:"Trapped Survivor",icon:"🧔",x:-2600,y:-220,spawnX:-2600,spawnY:-220,zone:"H3ll",text:"The BCob has trapped me here. Its eye fires three bolts in a fan—keep moving sideways, then strike while it recovers.",color:"#ef8a55",phase:1.8,patrolRadius:85,speed:.48,active:false,trapped:true,following:false},
+      {name:"Market Keeper",role:"Merchant of the Underworld",icon:"🧙‍♂️",x:0,y:-2350,spawnX:0,spawnY:-2350,zone:"Market",text:"I trade potions and weapons for gold.",color:"#f4c765",phase:3.1,patrolRadius:65,speed:.28}
+    ];
+    let nelsonBlessed=false,megaGateKey=false,hasEscaped=false,hellLockedWarning=false;
+    const enemyProjectiles=[];
+
+    let musicContext=null,musicMaster=null,musicTrack=null,musicEnabled=false,musicMode="intro";
+    const musicThemes={
+      intro:{
+        chords:[[55,82.41,110,164.81],[49,73.42,98,146.83],[43.65,65.41,87.31,130.81],[55,73.42,98,146.83]],
+        melody:[440,392,349.23,392,523.25,466.16,392,349.23],
+        voices:["triangle","sine","sine","sine"],voiceLevels:[.052,.026,.018,.009],
+        chordEvery:6200,noteEvery:2650,noteWave:"sine",noteGain:.045,
+        noteAttack:.75,noteSustain:1.7,noteRelease:1.5
+      },
+      gameplay:{
+        chords:[[73.42,110,146.83],[65.41,98,130.81],[82.41,123.47,164.81],[61.74,92.5,123.47]],
+        melody:[293.66,349.23,392,349.23,261.63,311.13,392,466.16],
+        voices:["sawtooth","triangle","sine"],voiceLevels:[.024,.018,.012],
+        chordEvery:2300,noteEvery:640,noteWave:"triangle",noteGain:.045,
+        noteAttack:.025,noteSustain:.1,noteRelease:.25,
+        pulseEvery:640,pulseGain:.035,pulseDuration:.24
+      }
+    };
+
+    function updateMusicButton() {
+      const button=document.getElementById("musicToggle");
+      button.textContent=musicEnabled?"Music: "+(musicMode==="intro"?"Intro":"Gameplay"):"Music: Off";
+      button.setAttribute("aria-pressed",String(musicEnabled));
+    }
+
+    function stopMusicTrack(fade=.35) {
+      if(!musicTrack)return;
+      const oldTrack=musicTrack;
+      musicTrack=null;
+      window.clearInterval(oldTrack.chordTimer);
+      window.clearInterval(oldTrack.noteTimer);
+      window.clearInterval(oldTrack.pulseTimer);
+      const now=musicContext.currentTime;
+      oldTrack.gain.gain.cancelScheduledValues(now);
+      oldTrack.gain.gain.setTargetAtTime(.0001,now,Math.max(.04,fade/5));
+      oldTrack.voices.forEach(voice=>voice.stop(now+fade+.1));
+      window.setTimeout(()=>oldTrack.gain.disconnect(),(fade+.15)*1000);
+    }
+
+    function createMusicTrack(mode) {
+      const theme=musicThemes[mode];
+      const now=musicContext.currentTime;
+      const track={mode,gain:musicContext.createGain(),voices:[],chordTimer:0,noteTimer:0,pulseTimer:0,chordIndex:0,noteIndex:0};
+      track.gain.gain.setValueAtTime(.0001,now);
+      track.gain.gain.exponentialRampToValueAtTime(.72,now+1.2);
+      track.gain.connect(musicMaster);
+      theme.voices.forEach((type,index)=>{
+        const oscillator=musicContext.createOscillator();
+        const voiceGain=musicContext.createGain();
+        oscillator.type=type;
+        oscillator.frequency.value=theme.chords[0][index];
+        voiceGain.gain.value=theme.voiceLevels[index];
+        oscillator.connect(voiceGain);
+        voiceGain.connect(track.gain);
+        oscillator.start();
+        track.voices.push(oscillator);
+      });
+
+      const changeChord=()=>{
+        const chord=theme.chords[track.chordIndex%theme.chords.length];
+        track.voices.forEach((voice,index)=>{
+          voice.frequency.setTargetAtTime(chord[index],musicContext.currentTime,mode==="intro" ? .9 : .28);
+        });
+        track.chordIndex++;
+      };
+      const playNote=()=>{
+        const oscillator=musicContext.createOscillator();
+        const envelope=musicContext.createGain();
+        const noteTime=musicContext.currentTime;
+        const duration=theme.noteAttack+theme.noteSustain+theme.noteRelease;
+        oscillator.type=theme.noteWave;
+        oscillator.frequency.value=theme.melody[track.noteIndex%theme.melody.length];
+        envelope.gain.setValueAtTime(.0001,noteTime);
+        envelope.gain.exponentialRampToValueAtTime(theme.noteGain,noteTime+theme.noteAttack);
+        envelope.gain.setValueAtTime(theme.noteGain,noteTime+theme.noteAttack+theme.noteSustain);
+        envelope.gain.exponentialRampToValueAtTime(.0001,noteTime+duration);
+        oscillator.connect(envelope);
+        envelope.connect(track.gain);
+        oscillator.start(noteTime);
+        oscillator.stop(noteTime+duration+.02);
+        track.noteIndex++;
+      };
+      const playPulse=()=>{
+        const oscillator=musicContext.createOscillator();
+        const envelope=musicContext.createGain();
+        const pulseTime=musicContext.currentTime;
+        oscillator.type="sine";
+        oscillator.frequency.value=theme.chords[track.chordIndex%theme.chords.length][0]/2;
+        envelope.gain.setValueAtTime(.0001,pulseTime);
+        envelope.gain.exponentialRampToValueAtTime(theme.pulseGain,pulseTime+.012);
+        envelope.gain.exponentialRampToValueAtTime(.0001,pulseTime+theme.pulseDuration);
+        oscillator.connect(envelope);
+        envelope.connect(track.gain);
+        oscillator.start(pulseTime);
+        oscillator.stop(pulseTime+theme.pulseDuration+.02);
+      };
+
+      changeChord();
+      playNote();
+      if(theme.pulseEvery)playPulse();
+      track.chordTimer=window.setInterval(changeChord,theme.chordEvery);
+      track.noteTimer=window.setInterval(playNote,theme.noteEvery);
+      if(theme.pulseEvery)track.pulseTimer=window.setInterval(playPulse,theme.pulseEvery);
+      musicTrack=track;
+    }
+
+    function startBackgroundMusic(mode=musicMode) {
+      const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+      if(!AudioContextClass){
+        const button=document.getElementById("musicToggle");
+        button.textContent="Music unavailable";
+        button.disabled=true;
+        button.title="This browser does not support background audio.";
+        return;
+      }
+      musicMode=mode;
+      musicEnabled=true;
+      if(!musicContext){
+        musicContext=new AudioContextClass();
+        const filter=musicContext.createBiquadFilter();
+        filter.type="lowpass";
+        filter.frequency.value=1900;
+        musicMaster=musicContext.createGain();
+        musicMaster.gain.value=.72;
+        musicMaster.connect(filter);
+        filter.connect(musicContext.destination);
+      }
+      updateMusicButton();
+      musicContext.resume().then(()=>{
+        if(!musicEnabled||musicMode!==mode)return;
+        if(musicTrack&&musicTrack.mode===mode)return;
+        stopMusicTrack(.55);
+        createMusicTrack(mode);
+      }).catch(()=>{
+        musicEnabled=false;
+        const button=document.getElementById("musicToggle");
+        button.textContent="Music unavailable";
+        button.setAttribute("aria-pressed","false");
+        button.title="Background audio could not be started.";
+      });
+    }
+
+    function stopBackgroundMusic() {
+      musicEnabled=false;
+      stopMusicTrack(.3);
+      updateMusicButton();
+    }
+
+    function setBackgroundMusicMode(mode) {
+      musicMode=mode;
+      if(musicEnabled)startBackgroundMusic(mode);
+      else updateMusicButton();
+    }
+
+    document.getElementById("musicToggle").onclick=()=>{
+      if(musicEnabled)stopBackgroundMusic();
+      else startBackgroundMusic(musicMode);
+    };
+
+    document.querySelectorAll(".classCard").forEach(card => card.onclick=()=>{
+      document.querySelectorAll(".classCard").forEach(c=>c.classList.remove("selected"));
+      card.classList.add("selected");
+      selected={name:card.dataset.name,icon:card.dataset.icon,power:+card.dataset.power,speed:+card.dataset.speed};
+      if(!document.getElementById("hunterName").dataset.edited){
+        document.getElementById("hunterName").value=selected.name.toUpperCase();
+        appearance.hunterName=selected.name.toUpperCase();
+      }
+    });
+
+    document.querySelectorAll(".colorSwatch").forEach(swatch=>{
+      swatch.onclick=()=>{
+        document.querySelectorAll(".colorSwatch").forEach(s=>s.classList.remove("selected"));
+        swatch.classList.add("selected");
+        appearance.armor=swatch.dataset.color;
+        appearance.accent=swatch.dataset.accent;
+        const preview=document.getElementById("previewFigure");
+        preview.style.background=appearance.armor;
+        preview.style.boxShadow="inset 0 0 0 5px "+appearance.accent+",0 18px 22px rgba(0,0,0,.55)";
+      };
+    });
+
+    document.querySelectorAll(".outfitButton").forEach(button=>{
+      button.onclick=()=>{
+        document.querySelectorAll(".outfitButton").forEach(b=>b.classList.remove("selected"));
+        button.classList.add("selected");
+        appearance.outfit=button.dataset.outfit;
+        const preview=document.getElementById("previewFigure");
+        preview.style.borderRadius=appearance.outfit==="Rogue"?"22px 22px 12px 12px":appearance.outfit==="Knight"?"18px 18px 8px 8px":"38px 38px 18px 18px";
+        preview.style.transform=appearance.outfit==="Knight"?"scale(1.08)":appearance.outfit==="Rogue"?"skewY(-2deg)":"none";
+      };
+    });
+
+    document.getElementById("hunterName").oninput=e=>{
+      e.target.dataset.edited="true";
+      appearance.hunterName=(e.target.value.trim()||"HUNTER").toUpperCase();
+    };
+
+    document.getElementById("playBtn").onclick=()=>{
+      document.getElementById("menuScreen").style.display="none";
+      document.getElementById("hud").style.display="block";
+      document.getElementById("controls").style.display=innerWidth<700?"flex":"none";
+      Object.assign(player,{power:selected.power,speed:selected.speed,icon:selected.icon,name:selected.name});
+      player.className=selected.name;
+      player.weaponRole=selected.name==="Astra"?"Arcane bolt":selected.name==="Rook"?"Titan cleave":"Shadow volley";
+      player.name=appearance.hunterName;
+      player.appearance={...appearance};
+      gameStarted=true;
+      setBackgroundMusicMode("gameplay");
+      updateHUD();
+      showDialogue("King Milan","The Underworld is open. Gather 5 keys from each zone.");
+      saveUnderworldProgress();
+    };
+
+    addEventListener("keydown",e=>{
+      keysPressed[e.key.toLowerCase()] = true;
+      if(e.key.toLowerCase()=="e") interact();
+      if(e.key.toLowerCase()==="q") usePotion();
+      if(e.code==="Space"){e.preventDefault();attack();}
+      if(e.key==="Escape"){
+        document.getElementById("npcDialogue").style.display="none";
+        document.getElementById("marketOverlay").style.display="none";
+        document.getElementById("portalOverlay").style.display="none";
+      }
+    });
+    addEventListener("keyup",e=>keysPressed[e.key.toLowerCase()] = false);
+    canvas.addEventListener("mousemove",e=>{
+      mouse.x=e.clientX;mouse.y=e.clientY;
+      player.angle=Math.atan2(mouse.y-h/2,mouse.x-w/2);
+    });
+    canvas.addEventListener("mousedown",()=>{mouse.down=true;player.angle=Math.atan2(mouse.y-h/2,mouse.x-w/2);});
+    addEventListener("mouseup",()=>mouse.down=false);
+    canvas.addEventListener("touchstart",e=>{
+      const t=e.touches[0];mouse.down=true;mouse.x=t.clientX;mouse.y=t.clientY;
+      player.angle=Math.atan2(mouse.y-h/2,mouse.x-w/2);
+    });
+    canvas.addEventListener("touchmove",e=>{
+      const t=e.touches[0];mouse.x=t.clientX;mouse.y=t.clientY;
+      player.angle=Math.atan2(mouse.y-h/2,mouse.x-w/2);
+    });
+    canvas.addEventListener("touchend",()=>mouse.down=false);
+
+    document.querySelectorAll(".key").forEach(button=>{
+      const key=button.dataset.key;
+      button.addEventListener("pointerdown",e=>{e.preventDefault();keysPressed[key]=true;});
+      button.addEventListener("pointerup",()=>keysPressed[key]=false);
+      button.addEventListener("pointerleave",()=>keysPressed[key]=false);
+      button.addEventListener("pointercancel",()=>keysPressed[key]=false);
+    });
+    document.getElementById("attackButton").addEventListener("pointerdown",e=>{
+      e.preventDefault();
+      mouse.down=false;
+      attack();
+    });
+    document.getElementById("potionButton").addEventListener("pointerdown",e=>{
+      e.preventDefault();
+      usePotion();
+    });
+    document.getElementById("interactButton").addEventListener("pointerdown",e=>{
+      e.preventDefault();
+      interact();
+    });
+
+    function worldToScreen(x,y) {
+      return {x:w/2+(x-player.x),y:h/2+(y-player.y)};
+    }
+
+    function isBossActive(enemy) {
+      if(enemy.isFinalBoss)return player.keys>=20;
+      if(enemy.isBoss)return zoneKeys[enemy.zone]>=5;
+      if(enemy.requiresHell)return player.keys>=20;
+      return true;
+    }
+
+    function isProtectedZone(name) {
+      return name==="Safe Zone"||name==="Market";
+    }
+
+    function waystonePosition(zone) {
+      const offsets={
+        "Market":{x:220,y:170},
+        "Static Zone":{x:0,y:-300}
+      };
+      const offset=offsets[zone.name]||{x:0,y:0};
+      return {x:zone.x+offset.x,y:zone.y+offset.y};
+    }
+
+    function update(dt) {
+      if(!gameStarted) return;
+      const previousX=player.x,previousY=player.y;
+      let dx=0,dy=0;
+      if(keysPressed.w||keysPressed.arrowup) dy-=1;
+      if(keysPressed.s||keysPressed.arrowdown) dy+=1;
+      if(keysPressed.a||keysPressed.arrowleft) dx-=1;
+      if(keysPressed.d||keysPressed.arrowright) dx+=1;
+      player.isMoving=!!(dx||dy);
+      player.walkPhase+=dt*(player.isMoving?13:2.4);
+      if(dx||dy) {
+        const len=Math.hypot(dx,dy);dx/=len;dy/=len;
+        player.x+=dx*player.speed*dt*60;
+        player.y+=dy*player.speed*dt*60;
+      }
+      for(let i=visualEffects.length-1;i>=0;i--){
+        const effect=visualEffects[i];
+        effect.life-=dt;
+        if(effect.kind==="spark"){
+          effect.x+=effect.vx*dt;
+          effect.y+=effect.vy*dt;
+          effect.vx*=Math.pow(.08,dt);
+          effect.vy=effect.vy*Math.pow(.08,dt)+45*dt;
+        }
+        if(effect.life<=0)visualEffects.splice(i,1);
+      }
+      player.invulnerable=Math.max(0,player.invulnerable-dt);
+      attackFlash=Math.max(0,attackFlash-dt);
+      shake=Math.max(0,shake-dt);
+      player.attackCooldown=Math.max(0,player.attackCooldown-dt);
+
+      for(const npc of npcs){
+        if(npc.name==="Nelson"){
+          if(!npc.active||npc.trapped)continue;
+          if(npc.following){
+            const targetX=player.x-Math.cos(player.angle)*48;
+            const targetY=player.y-Math.sin(player.angle)*48;
+            const follow=1-Math.exp(-4.5*dt);
+            npc.x+=(targetX-npc.x)*follow;
+            npc.y+=(targetY-npc.y)*follow;
+            continue;
+          }
+        }
+        npc.phase+=dt*npc.speed;
+        npc.x=npc.spawnX+Math.cos(npc.phase)*npc.patrolRadius;
+        npc.y=npc.spawnY+Math.sin(npc.phase*.72)*npc.patrolRadius*.65;
+      }
+
+      let nextZone=zones.reduce((near,z)=>Math.hypot(player.x-z.x,player.y-z.y)<Math.hypot(player.x-near.x,player.y-near.y)?z:near,zones[0]);
+      if(nextZone.name==="H3ll"&&player.keys<20&&!nelsonSecretAccess){
+        player.x=previousX;player.y=previousY;
+        nextZone=zones.reduce((near,z)=>Math.hypot(player.x-z.x,player.y-z.y)<Math.hypot(player.x-near.x,player.y-near.y)?z:near,zones[0]);
+        if(!hellLockedWarning){
+          showDialogue("H3ll Sealed","Recover all 20 regional keys to break the seal.");
+          hellLockedWarning=true;
+        }
+      }else{
+        hellLockedWarning=false;
+      }
+      currentZone=nextZone;
+      updateZoneUI();
+      updateNpcPrompt();
+
+      if(mouse.down && attackFlash<=0) attack();
+
+      for(let i=enemyProjectiles.length-1;i>=0;i--){
+        const projectile=enemyProjectiles[i];
+        projectile.life-=dt;
+        projectile.x+=projectile.dx*projectile.speed*dt;
+        projectile.y+=projectile.dy*projectile.speed*dt;
+        if(Math.hypot(player.x-projectile.x,player.y-projectile.y)<player.radius+projectile.radius){
+          if(!isProtectedZone(currentZone.name)&&player.invulnerable<=0)hurt(projectile.damage);
+          enemyProjectiles.splice(i,1);
+        }else if(projectile.life<=0){
+          enemyProjectiles.splice(i,1);
+        }
+      }
+
+      for(let i=projectiles.length-1;i>=0;i--){
+        const projectile=projectiles[i];
+        projectile.life-=dt;
+        projectile.x+=projectile.dx*projectile.speed*dt;
+        projectile.y+=projectile.dy*projectile.speed*dt;
+        let consumed=false;
+        for(const enemy of enemies){
+          if(enemy.dead||!isBossActive(enemy))continue;
+          const dist=Math.hypot(projectile.x-enemy.x,projectile.y-enemy.y);
+          if(dist<enemy.radius+(projectile.radius||7)){
+            spawnCombatBurst(projectile.x,projectile.y,monsterPalette(enemy).accent,8,105,30);
+            enemy.health-=projectile.damage;
+            enemy.hit=.18;
+            const push=Math.atan2(enemy.y-projectile.y,enemy.x-projectile.x);
+            const knockback=projectile.knockback||12;
+            enemy.x+=Math.cos(push)*knockback;
+            enemy.y+=Math.sin(push)*knockback;
+            if(enemy.health<=0)defeatEnemy(enemy);
+            consumed=true;
+            break;
+          }
+        }
+        const maxRange=player.weapon==="Wraithfang"?680:520;
+        if(consumed||projectile.life<=0||Math.hypot(projectile.x-player.x,projectile.y-player.y)>maxRange){
+          projectiles.splice(i,1);
+        }
+      }
+
+      for(const enemy of enemies) {
+        if(enemy.dead) {
+          if(enemy.isFinalBoss)continue;
+          enemy.respawn-=dt;
+          if(enemy.respawn<=0) {
+            enemy.dead=false;
+            enemy.health=enemy.maxHealth;
+            enemy.x=enemy.spawnX;
+            enemy.y=enemy.spawnY;
+          }
+          continue;
+        }
+        if(!isBossActive(enemy)||enemy.zone!==currentZone.name)continue;
+        if(isProtectedZone(currentZone.name))continue;
+        const dist=Math.hypot(player.x-enemy.x,player.y-enemy.y);
+        if(dist>900) continue;
+        enemy.hit=Math.max(0,enemy.hit-dt);
+        enemy.angle=Math.atan2(player.y-enemy.y,player.x-enemy.x);
+        enemy.attackCooldown-=dt;
+        enemy.contactCooldown=Math.max(0,enemy.contactCooldown-dt);
+        if(dist<420) {
+          enemy.angle=Math.atan2(player.y-enemy.y,player.x-enemy.x);
+          const nextX=enemy.x+Math.cos(enemy.angle)*enemy.speed*dt*60;
+          const nextY=enemy.y+Math.sin(enemy.angle)*enemy.speed*dt*60;
+          const home=zones.find(zone=>zone.name===enemy.zone);
+          const withinHome=home&&Math.hypot(nextX-home.x,nextY-home.y)<home.radius*.94;
+          const safeBoundary=zones.filter(zone=>isProtectedZone(zone.name)).every(zone=>Math.hypot(nextX-zone.x,nextY-zone.y)>zone.radius+24);
+          if(withinHome&&safeBoundary){enemy.x=nextX;enemy.y=nextY;}
+        }
+        if(enemy.isFinalBoss&&dist<560&&enemy.attackCooldown<=0){
+          for(let spread=-1;spread<=1;spread++){
+            const angle=enemy.angle+spread*.22;
+            enemyProjectiles.push({
+              x:enemy.x+Math.cos(angle)*48,y:enemy.y+Math.sin(angle)*48,
+              dx:Math.cos(angle),dy:Math.sin(angle),speed:260,life:2.5,
+              damage:24,radius:12,color:"#ff7951"
+            });
+          }
+          enemy.attackCooldown=2.1;
+        }
+        if(dist<55&&enemy.contactCooldown<=0&&player.invulnerable<=0) {
+            enemy.contactCooldown=enemy.isFinalBoss?.9:enemy.isBoss?.8:1.15;
+            hurt(enemy.power);
+        }
+      }
+    }
+
+    function spawnCombatBurst(x,y,color,count=8,force=120,ringRadius=28) {
+      for(let i=0;i<count;i++){
+        const angle=Math.random()*Math.PI*2;
+        const speed=force*(.35+Math.random()*.75);
+        const life=.22+Math.random()*.22;
+        visualEffects.push({
+          kind:"spark",x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,
+          life,maxLife:life,color,size:1.5+Math.random()*2.2
+        });
+      }
+      if(ringRadius){
+        visualEffects.push({kind:"ring",x,y,life:.28,maxLife:.28,color,radius:ringRadius});
+      }
+    }
+
+    function attack() {
+      if(!gameStarted||player.attackCooldown>0)return;
+      const attackStyles={
+        Astra:{damage:.85,cooldown:1,speed:620,radius:9,spread:[0],color:"#73e7ff",knockback:14,shape:"orb"},
+        Rook:{damage:1.05,cooldown:1.6,speed:460,radius:15,spread:[0],color:"#ffd36e",knockback:30,shape:"heavy"},
+        Nyx:{damage:.3,cooldown:1.05,speed:760,radius:6,spread:[-.15,0,.15],color:"#d98cff",knockback:9,shape:"dart"}
+      };
+      const style=attackStyles[player.className]||attackStyles.Astra;
+      player.attackCooldown=player.weaponCooldown*style.cooldown;
+      attackFlash=.28;
+      shake=.12;
+      spawnCombatBurst(player.x+Math.cos(player.angle)*28,player.y+Math.sin(player.angle)*28,"#f5ca67",4,72,16);
+      style.spread.forEach(offset=>{
+        const angle=player.angle+offset;
+        projectiles.push({
+          x:player.x+Math.cos(angle)*24,
+          y:player.y+Math.sin(angle)*24,
+          dx:Math.cos(angle),
+          dy:Math.sin(angle),
+          speed:style.speed*(player.weapon==="Wraithfang"?1.12:1),
+          life:player.weapon==="Wraithfang"?1.2:1.05,
+          damage:Math.round(player.power*style.damage+player.weaponBonus*4),
+          radius:style.radius,
+          knockback:style.knockback,
+          color:style.color,
+          shape:style.shape,
+          role:player.weaponRole
+        });
+      });
+    }
+
+    function defeatEnemy(enemy) {
+      if(enemy.dead)return;
+      enemy.dead=true;
+      const palette=monsterPalette(enemy);
+      spawnCombatBurst(enemy.x,enemy.y,palette.accent,enemy.isBoss||enemy.isFinalBoss?30:16,enemy.isBoss||enemy.isFinalBoss?210:145,enemy.isBoss||enemy.isFinalBoss?105:48);
+      enemy.respawn=enemy.isFinalBoss?0:8;
+      const boss=enemy.isBoss||enemy.isFinalBoss;
+      player.gold+=boss?500:80;
+      player.exp+=boss?5:2;
+      player.health=Math.min(player.maxHealth,player.health+12);
+      const recoveredKey=enemy.keyBearer&&!enemy.keyRecovered&&zoneKeys[enemy.zone]!==undefined;
+      if(recoveredKey) {
+        enemy.keyRecovered=true;
+        zoneKeys[enemy.zone]=Math.min(5,zoneKeys[enemy.zone]+1);
+        player.keys=Object.values(zoneKeys).reduce((a,b)=>a+b,0);
+      }
+      if(player.exp>=player.level*8) { player.level++;player.maxHealth+=20;player.health=player.maxHealth;player.power+=4; }
+
+      let victoryText=enemy.name+" defeated.";
+      if(recoveredKey)victoryText+=" Regional key recovered ("+player.keys+"/20).";
+      if(enemy.isFinalBoss){
+        megaGateKey=true;
+        const nelson=npcs.find(npc=>npc.name==="Nelson");
+        if(nelson){
+          nelson.trapped=false;
+          nelson.freed=true;
+          nelson.following=true;
+          nelson.active=true;
+          nelson.role="ESCORT · SURVIVOR OF H3LL";
+          nelson.text="The waystone will take us back to the Safe Zone. I will follow you to the Mega Gate.";
+          nelson.x=player.x-48;
+          nelson.y=player.y+35;
+          victoryText="The BCob falls! You claimed the Mega Gate Key and freed Nelson. Bring him to the Safe Zone gate.";
+        }
+      }else if(enemy.isBoss){
+        victoryText+=" The region boss is defeated.";
+      }
+
+      let unlockedHellNow=false;
+      if(player.keys>=20&&!hellUnsealed){
+        hellUnsealed=true;
+        const nelson=npcs.find(npc=>npc.name==="Nelson");
+        if(nelson){
+          nelson.active=true;
+          unlockedHellNow=true;
+        }
+      }
+      if(unlockedHellNow){
+        showDialogue("H3ll Unsealed","All 20 regional keys are yours. Nelson is trapped in H3ll; defeat The BCob to free him and claim the Mega Gate Key.");
+      }else{
+        showDialogue(enemy.isFinalBoss?"Key and Rescue":enemy.isBoss?"Boss Defeated":"Victory",victoryText);
+      }
+      updateZoneUI();
+      updateHUD();
+      saveUnderworldProgress();
+    }
+
+    function hurt(amount) {
+      player.health-=amount;
+      player.invulnerable=.75;
+      shake=.28;
+      updateHUD();
+      if(player.health<=0) {
+        player.health=player.maxHealth;
+        player.gold=Math.max(0,player.gold-100);
+        player.x=0;player.y=-2350;
+        document.getElementById("gameOver").style.display="flex";
+        saveUnderworldProgress();
+      }
+    }
+
+    function interact() {
+      if(currentZone.name==="Safe Zone"&&Math.hypot(player.x-megaGate.x,player.y-megaGate.y)<105){
+        if(!megaGateKey){
+          showDialogue("Mega Gate","The gate needs its key. Break H3ll's seal, then defeat The BCob.");
+        }else{
+          const nelson=npcs.find(npc=>npc.name==="Nelson");
+          if(!nelson||!nelson.following||Math.hypot(nelson.x-megaGate.x,nelson.y-megaGate.y)>150){
+            showDialogue("Mega Gate","Nelson must reach the gate with you before you can escape.");
+          }else{
+            hasEscaped=true;
+            document.getElementById("gateHunterName").textContent=player.name;
+            document.getElementById("gateLevel").textContent=player.level;
+            document.getElementById("gatePower").textContent=player.power;
+            document.getElementById("megaGate").style.display="flex";
+            document.getElementById("objective").textContent="You and Nelson escaped the Underworld.";
+          }
+        }
+        return;
+      }
+      if(currentZone.name==="H3ll"&&!nelsonRiftClosed&&!hellReturnPortal.closed&&nelsonSecretAccess&&Math.hypot(player.x-hellReturnPortal.x,player.y-hellReturnPortal.y)<105){
+        returnFromNelsonPortal();
+        return;
+      }
+      for(const npc of npcs) {
+        if((npc.zone===currentZone.name||npc.following)&&npc.active!==false&&Math.hypot(player.x-npc.x,player.y-npc.y)<90) {
+          openNpcDialogue(npc);
+          return;
+        }
+      }
+      for(const enemy of enemies) {
+        if(!enemy.dead&&enemy.zone===currentZone.name&&Math.hypot(player.x-enemy.x,player.y-enemy.y)<100) {
+          openMonsterDialogue(enemy);
+          return;
+        }
+      }
+      const waystone=waystonePosition(currentZone);
+      if(currentZone.name==="Market"&&!nelsonRiftClosed&&!marketSecretPortal.closed&&nelsonVisitCount===0&&Math.hypot(player.x-marketSecretPortal.x,player.y-marketSecretPortal.y)<105){
+        marketSecretPortal.discovered=true;
+        nelsonSecretAccess=true;
+        nelsonVisitCount=1;
+        const nelson=npcs.find(npc=>npc.name==="Nelson");
+        nelson.active=true;
+        nelson.text="Astra, listen carefully: this rift allows only one visit and one return. Use this chance to hear my warning, then leave through the rift—I cannot open it again.";
+        document.getElementById("marketOverlay").style.display="none";
+        currentZone=zones.find(zone=>zone.name==="H3ll");
+        player.x=nelson.x+58;
+        player.y=nelson.y;
+        updateZoneUI();
+        showDialogue("Nelson","Astra, this rift can be used only once. H3ll is sealed behind it—remember my warning.");
+        saveUnderworldProgress();
+        return;
+      }
+      if(Math.hypot(player.x-waystone.x,player.y-waystone.y)<110){
+        openPortalMenu();
+        return;
+      }
+      if(currentZone.name==="Market") openMarket();
+    }
+
+    function openPortalMenu() {
+      const choices=document.getElementById("portalChoices");
+      choices.innerHTML="";
+      document.querySelector(".portalBox p").textContent=player.keys<20
+        ?nelsonSecretAccess
+          ?"The Market rift reaches Nelson's refuge, but The BCob remains sealed until all 20 keys are recovered."
+          :"H3ll remains sealed until all 20 regional keys are recovered."
+        :nelsonRiftClosed
+          ?"The one-time Nelson rift is closed. Regional H3ll access must remain sealed."
+        :"All 20 keys are yours. H3ll is now open.";
+      for(const zone of zones){
+        if(zone.name===currentZone.name)continue;
+        const button=document.createElement("button");
+        button.className="portalChoice";
+        button.textContent=zone.name==="H3ll"&&(player.keys<20||nelsonRiftClosed)?"H3ll · sealed":zone.name;
+        button.disabled=zone.name==="H3ll"&&(player.keys<20||nelsonRiftClosed);
+        button.onclick=()=>travelToZone(zone);
+        choices.appendChild(button);
+      }
+      document.getElementById("portalOverlay").style.display="flex";
+    }
+
+    function travelToZone(zone) {
+      if(zone.name==="H3ll"&&player.keys<20){
+        showDialogue("Waystone","H3ll is sealed. Recover all 20 regional keys.");
+        return;
+      }
+      if(zone.name==="H3ll"&&nelsonRiftClosed){
+        showDialogue("Waystone","The secret Nelson rift has sealed. H3ll is closed until the regional quest restores it.");
+        return;
+      }
+      document.getElementById("portalOverlay").style.display="none";
+      document.getElementById("npcDialogue").style.display="none";
+      const destination=waystonePosition(zone);
+      player.x=destination.x;
+      player.y=zone.name==="H3ll"?destination.y-200:destination.y;
+      enemyProjectiles.length=0;
+      projectiles.length=0;
+      currentZone=zone;
+      const nelson=npcs.find(npc=>npc.name==="Nelson");
+      if(nelson&&nelson.following){
+        nelson.x=player.x-48;
+        nelson.y=player.y+35;
+      }
+      updateZoneUI();
+      showDialogue("Waystone","You arrive in "+zone.name+".");
+      saveUnderworldProgress();
+    }
+
+    function returnFromNelsonPortal() {
+      const market=zones.find(zone=>zone.name==="Market");
+      document.getElementById("npcDialogue").style.display="none";
+      document.getElementById("portalOverlay").style.display="none";
+      document.getElementById("marketOverlay").style.display="none";
+      activeNpc=null;
+      activeMonster=null;
+      nelsonSecretAccess=false;
+      marketSecretPortal.discovered=false;
+      hellReturnPortal.closed=true;
+      nelsonRiftClosed=true;
+      currentZone=market;
+      player.x=market.x;
+      player.y=market.y+120;
+      marketAutoOpened=false;
+      marketSecretPortal.closed=true;
+      updateZoneUI();
+      showDialogue("Nelson","The rift collapses behind you. This was a one-time visit—H3ll is sealed again.");
+      saveUnderworldProgress();
+    }
+
+    let activeNpc=null;
+    let activeMonster=null;
+
+    function monsterDialogue(enemy) {
+      if(enemy.isFinalBoss)return "I am The BCob, protector of H3ll. Nelson and the Mega Gate Key are mine.";
+      if(enemy.isBoss&&!isBossActive(enemy))return "The smaller monsters still guard this region. Defeat all five to break my seal.";
+      const lines={
+        "Frossbite":"The ice answers to me. Step closer and freeze.",
+        "Fireball":"Every path is ash. I will turn your courage into cinders.",
+        "Nuclear Zone":"My blood glows brighter than your hope.",
+        "Static Zone":"Your future is already breaking inside my sight.",
+        "Training Zone":"A clean strike is stronger than an angry swing.",
+        "H3ll":"Only survivors leave this place."
+      };
+      return lines[enemy.zone]||"You entered my territory. Stand your ground.";
+    }
+
+    function openMonsterDialogue(enemy) {
+      activeMonster=enemy;
+      document.getElementById("npcPortrait").textContent=enemy.icon;
+      document.getElementById("npcRole").textContent=enemy.isBoss&&!isBossActive(enemy)
+        ?"SEALED BOSS · CLEAR THE MINIONS"
+        :enemy.zone+" MONSTER • POW "+enemy.power;
+      document.getElementById("npcName").textContent=enemy.name;
+      document.getElementById("npcText").textContent=monsterDialogue(enemy);
+      const choices=document.getElementById("npcChoices");
+      choices.innerHTML="";
+      if(!isBossActive(enemy)){
+        addNpcChoice("Boss sealed",zoneKeys[enemy.zone]+"/5 smaller monsters defeated");
+        addNpcChoice("Back away","The boss cannot be harmed yet.");
+        document.getElementById("npcDialogue").style.display="grid";
+        return;
+      }
+      addNpcChoice("Taunt "+enemy.name,"Come on. I am ready to test your power.",()=>{
+        enemy.angle=Math.atan2(player.y-enemy.y,player.x-enemy.x);
+      });
+      addNpcChoice("Assess target","Health "+Math.max(0,enemy.health)+" / "+enemy.maxHealth+" • Attack power "+enemy.power);
+      addNpcChoice("Attack","Prepare to strike.",()=>{
+        player.angle=Math.atan2(enemy.y-player.y,enemy.x-player.x);
+        attack();
+      });
+      addNpcChoice("Retreat","Move away before the monster attacks.");
+      document.getElementById("npcDialogue").style.display="grid";
+    }
+
+    function openNpcDialogue(npc) {
+      activeNpc=npc;
+      document.getElementById("npcPortrait").textContent=npc.icon;
+      document.getElementById("npcRole").textContent=npc.role;
+      document.getElementById("npcName").textContent=npc.name;
+      document.getElementById("npcText").textContent=npc.text;
+      const choices=document.getElementById("npcChoices");
+      choices.innerHTML="";
+
+      if(npc.name==="King Milan"){
+        addNpcChoice("Restore health","King Milan restored your health.",()=>{
+          player.health=player.maxHealth;updateHUD();
+        });
+        addNpcChoice("Ask about the Mega Gate","Gather five keys in Frossbite, Fireball, Nuclear Zone, and Static Zone.");
+      }else if(npc.name==="Nelson"){
+        if(npc.trapped){
+          addNpcChoice("Ask about the key","The BCob guards the Mega Gate Key. Defeat it and free me.");
+          addNpcChoice("Ask for The BCob's weakness","Its eye fires three bolts in a fan. Keep moving sideways while they pass, then strike between volleys.");
+          addNpcChoice("Hear Nelson's warning","Astra, this rift is one-way after this return. Leave now, and you will never find this portal again.");
+          addNpcChoice("Return to the Market — close rift","This return closes both Nelson rifts permanently.",returnFromNelsonPortal);
+        }else{
+          addNpcChoice(nelsonBlessed?"Blessing received":"Receive survivor's blessing",nelsonBlessed?"Your blessing is already protecting you.":"Nelson restores you and increases your maximum health by 20.",()=>{
+            if(!nelsonBlessed){player.maxHealth+=20;player.health=Math.min(player.maxHealth,player.health+20);nelsonBlessed=true;updateHUD();}
+          });
+          addNpcChoice("Check the escort","Stay close. We need to reach the Mega Gate together.");
+        }
+      }else if(npc.name==="Market Keeper"){
+        addNpcChoice("Open market","Choose an item below.",openMarket);
+        addNpcChoice("Ask for advice","Defeat bosses for better gold rewards and train in dangerous zones.");
+      }
+      addNpcChoice("Farewell","Good luck, hunter.");
+      document.getElementById("npcDialogue").style.display="grid";
+    }
+
+    function addNpcChoice(label,response,action) {
+      const button=document.createElement("button");
+      button.className="npcChoice";
+      button.textContent=label;
+      button.onclick=()=>{
+        document.getElementById("npcText").textContent=response;
+        if(action)action();
+      };
+      document.getElementById("npcChoices").appendChild(button);
+    }
+
+    document.getElementById("closeNpcDialogue").onclick=()=>{
+      document.getElementById("npcDialogue").style.display="none";
+      activeNpc=null;
+      activeMonster=null;
+    };
+    document.getElementById("closePortal").onclick=()=>document.getElementById("portalOverlay").style.display="none";
+
+    function updateNpcPrompt() {
+      let nearest=null;
+      let nearestDistance=110;
+      if(gameStarted){
+        for(const npc of npcs){
+          if((npc.zone!==currentZone.name&&!npc.following)||npc.active===false)continue;
+          const distance=Math.hypot(player.x-npc.x,player.y-npc.y);
+          if(distance<nearestDistance){nearest=npc;nearestDistance=distance;}
+        }
+        for(const enemy of enemies){
+          if(enemy.dead||enemy.zone!==currentZone.name)continue;
+          const distance=Math.hypot(player.x-enemy.x,player.y-enemy.y);
+          if(distance<nearestDistance){
+            nearest={name:enemy.name,isMonster:true,locked:!isBossActive(enemy)};
+            nearestDistance=distance;
+          }
+        }
+        const gateDistance=Math.hypot(player.x-megaGate.x,player.y-megaGate.y);
+        if(currentZone.name==="Safe Zone"&&gateDistance<105){
+          nearest={name:"Mega Gate",isGate:true};
+          nearestDistance=gateDistance;
+        }
+        const waystone=waystonePosition(currentZone);
+        const portalDistance=Math.hypot(player.x-waystone.x,player.y-waystone.y);
+        if(portalDistance<nearestDistance){
+          nearest={name:"Waystone",isPortal:true};
+          nearestDistance=portalDistance;
+        }
+        if(currentZone.name==="H3ll"&&nelsonSecretAccess&&!hellReturnPortal.closed&&!nelsonRiftClosed){
+          const returnDistance=Math.hypot(player.x-hellReturnPortal.x,player.y-hellReturnPortal.y);
+          if(returnDistance<nearestDistance){
+            nearest={name:"Market Rift",isReturnPortal:true};
+            nearestDistance=returnDistance;
+          }
+        }
+        if(currentZone.name==="Market"&&!nelsonRiftClosed&&!marketSecretPortal.closed&&nelsonVisitCount===0){
+          const secretDistance=Math.hypot(player.x-marketSecretPortal.x,player.y-marketSecretPortal.y);
+          if(secretDistance<105)marketSecretPortal.discovered=true;
+          if(secretDistance<nearestDistance){
+            nearest={name:"Hidden Portal",isSecretPortal:true};
+            nearestDistance=secretDistance;
+          }
+        }
+      }
+      const prompt=document.getElementById("npcPrompt");
+      prompt.style.display=nearest?"block":"none";
+      if(nearest){
+        if(nearest.isReturnPortal)prompt.innerHTML="Press <b>E</b> to return to the Market";
+        else if(nearest.isSecretPortal)prompt.innerHTML="Press <b>E</b> to enter the tiny portal";
+        else if(nearest.isPortal)prompt.innerHTML="Press <b>E</b> to travel";
+        else if(nearest.isGate)prompt.innerHTML="Press <b>E</b> to use the Mega Gate";
+        else if(nearest.isMonster&&nearest.locked)prompt.innerHTML="Defeat 5 lesser monsters to awaken "+nearest.name;
+        else if(nearest.isMonster)prompt.innerHTML="Press <b>E</b> to confront "+nearest.name;
+        else prompt.innerHTML="Press <b>E</b> to speak to "+nearest.name;
+      }
+    }
+
+    function openMarket() {
+      updateMarketUI();
+      document.getElementById("marketOverlay").style.display="flex";
+    }
+
+    document.getElementById("marketButton").onclick=openMarket;
+
+    document.querySelectorAll(".shopItem").forEach(item=>{
+      item.onclick=()=>{
+        const cost=Number(item.dataset.cost);
+        if(player.gold<cost){showDialogue("Market Keeper","You need "+cost+" gold.");return;}
+        const effect=item.dataset.effect;
+        if(effect==="weapon"){
+          const bonus=Number(item.dataset.bonus);
+          if(bonus<=player.weaponBonus){
+            showDialogue("Market Keeper","You already carry an equal or stronger weapon.");
+            return;
+          }
+          player.weaponBonus=bonus;
+          player.weapon=item.dataset.weapon;
+          player.weaponRole=item.dataset.role;
+          player.weaponCooldown=Number(item.dataset.cooldown);
+        }else if(effect==="potion"){
+          player.potions++;
+        }else if(effect==="greaterPotion"){
+          player.greaterPotions++;
+        }else if(effect==="powerUpgrade"){
+          player.marketUpgrades.froststeel=true;
+          player.power+=8;
+        }else if(effect==="armorUpgrade"){
+          player.marketUpgrades.wardenPlate=true;
+          player.maxHealth+=40;
+          player.health+=40;
+        }
+        player.gold-=cost;
+        updateHUD();
+        saveUnderworldProgress();
+        const purchaseMessages={
+          weapon:player.weapon+" equipped. Its attacks now deal bonus damage.",
+          powerUpgrade:"Froststeel forged into your weapon. Power increased by 8.",
+          armorUpgrade:"Warden's Plate fitted. Maximum health increased by 40.",
+          potion:"Potion added to your inventory. Press Q to use it.",
+          greaterPotion:"Greater potion added to your inventory. Press Q to use it."
+        };
+        showDialogue("Market Keeper",purchaseMessages[effect]);
+      };
+    });
+    document.getElementById("closeMarket").onclick=()=>{
+      document.getElementById("marketOverlay").style.display="none";
+      marketAutoOpened=true;
+    };
+
+    function usePotion() {
+      if(!gameStarted)return;
+      if(player.health>=player.maxHealth){
+        showDialogue("Inventory","You are already at full health.");
+        return;
+      }
+      if(player.greaterPotions>0){
+        player.greaterPotions--;
+        player.health=player.maxHealth;
+        showDialogue("Inventory","Greater potion used. Health fully restored.");
+      }else if(player.potions>0){
+        player.potions--;
+        player.health=Math.min(player.maxHealth,player.health+45);
+        showDialogue("Inventory","Health potion used. Restored 45 health.");
+      }else{
+        showDialogue("Inventory","No potions in your pack. Visit the market.");
+        return;
+      }
+      updateHUD();
+    }
+
+    function updateMarketUI() {
+      document.getElementById("shopGold").textContent=player.gold;
+      document.querySelectorAll(".shopItem").forEach(item=>{
+        const isUnavailable=player.gold<Number(item.dataset.cost)
+          ||(item.dataset.effect==="weapon"&&Number(item.dataset.bonus)<=player.weaponBonus)
+          ||(item.dataset.effect==="powerUpgrade"&&player.marketUpgrades.froststeel)
+          ||(item.dataset.effect==="armorUpgrade"&&player.marketUpgrades.wardenPlate);
+        item.disabled=isUnavailable;
+        item.setAttribute("aria-disabled",String(isUnavailable));
+      });
+    }
+
+    function showDialogue(name,text) {
+      const box=document.getElementById("dialogue");
+      box.innerHTML="<strong>"+name+":</strong> "+text;
+      box.style.display="block";
+      dialogueTimer=4.5;
+    }
+
+    function updateZoneUI() {
+      document.documentElement.style.setProperty("--zone-accent",currentZone.accent);
+      document.documentElement.style.setProperty("--zone-title",currentZone.name==="Safe Zone"?"#f5f2ff":"#fff");
+      document.getElementById("hud").dataset.zone=currentZone.name.toLowerCase().replace(/[^a-z0-9]+/g,"-");
+      document.getElementById("zoneName").textContent=currentZone.name;
+      document.getElementById("zoneIcon").textContent=currentZone.icon;
+      document.getElementById("zoneKind").textContent=currentZone.kind;
+      const dots=document.querySelectorAll("#keyDots i");
+      const amount=zoneKeys[currentZone.name]||0;
+      dots.forEach((dot,i)=>dot.classList.toggle("on",i<amount));
+      const zoneObjectives={
+        "Safe Zone":"Meet King Milan, recover, and use the portals to choose a region.",
+        "Frossbite":amount<5?"Defeat "+(5-amount)+" more frost minion"+(5-amount===1?"":"s")+" to awaken Glacier Stalker.":"Glacier Stalker is awake. Defeat the boss, then cross the remaining regions.",
+        "Fireball":amount<5?"Defeat "+(5-amount)+" more volcanic minion"+(5-amount===1?"":"s")+" to awaken Jam Jam.":"Jam Jam is awake. Defeat the boss, then cross the remaining regions.",
+        "Nuclear Zone":amount<5?"Defeat "+(5-amount)+" more irradiated minion"+(5-amount===1?"":"s")+" to awaken Milan the Villain.":"Milan the Villain is awake. Defeat the boss, then cross the remaining regions.",
+        "Static Zone":amount<5?"Defeat "+(5-amount)+" more rift minion"+(5-amount===1?"":"s")+" to stabilize the seal.":"All 20 keys will unseal H3ll.",
+        "H3ll":megaGateKey?"Take Nelson to the Mega Gate in the Safe Zone.":player.keys<20?"Nelson knows The BCob's weakness. Recover all 20 keys to challenge it.":"Defeat The BCob and claim the Mega Gate Key.",
+        "Training Zone":"Practice your attacks on the training dummy.",
+        "Market":marketSecretPortal.discovered?"Restock and use the tiny rift to return to Nelson.":"Browse the merchant's wares and search the stalls for a hidden rift."
+      };
+      if(currentZone.name==="Safe Zone"){
+        zoneObjectives["Safe Zone"]=megaGateKey
+          ?"The Mega Gate is ready. Bring Nelson here to escape."
+          :player.keys>=20
+            ?"H3ll is open. Defeat The BCob and rescue Nelson."
+            :"Recover all 20 regional keys to unlock H3ll.";
+      }
+      document.getElementById("objective").textContent=zoneObjectives[currentZone.name]||"Explore the Underworld.";
+      const dangerous=["Frossbite","Fireball","Nuclear Zone","Static Zone","H3ll"].includes(currentZone.name);
+      document.getElementById("dangerVignette").style.display=dangerous?"block":"none";
+      document.getElementById("dangerLabel").style.display=dangerous?"block":"none";
+      if(dangerous){
+        const bossNames={Frossbite:"Frost Creatures Moving",Fireball:"Volcanic Monsters Hunting", "Nuclear Zone":"Radiation Hostiles Active","Static Zone":"RIFT SEAL — 5 MINIONS REMAIN","H3ll":player.keys<20?nelsonSecretAccess?"NELSON'S REFUGE — BCob SEALED":"HELL SEALED — RECOVER 20 KEYS":"HELL BOSS TERRITORY — THE BCob"};
+        document.getElementById("dangerLabel").textContent=bossNames[currentZone.name]||"Threat Detected";
+      }
+      if(currentZone.name==="Market"&&!marketAutoOpened){
+        marketAutoOpened=true;
+        openMarket();
+      }
+      if(currentZone.name!== "Market"){
+        marketAutoOpened=false;
+      }
+      if(hasEscaped)document.getElementById("objective").textContent="You and Nelson escaped the Underworld.";
+    }
+    function attackSummary() {
+      const style={
+        Astra:{damage:.85,label:"arcane bolt"},
+        Rook:{damage:1.05,label:"heavy cleave"},
+        Nyx:{damage:.3,label:"shadow volley"}
+      }[player.className]||{damage:.85,label:"arcane bolt"};
+      const perHit=Math.round(player.power*style.damage+player.weaponBonus*4);
+      return player.className==="Nyx"?perHit+" × 3 volley":perHit+" "+style.label;
+    }
+
+    function updateHUD() {
+      document.getElementById("healthFill").style.width=(player.health/player.maxHealth*100)+"%";
+      document.getElementById("healthText").textContent=Math.max(0,Math.round(player.health));
+      document.getElementById("powerText").textContent=player.power;
+      document.getElementById("goldText").textContent=player.gold;
+      document.getElementById("weaponText").textContent=player.weapon+" · "+attackSummary();
+      document.getElementById("weaponText").title=player.weaponRole;
+      const potionCount=player.potions+player.greaterPotions;
+      document.getElementById("potionCount").textContent=potionCount;
+      document.getElementById("mobilePotionCount").textContent=potionCount;
+      document.getElementById("keyText").textContent=player.keys+"/20";
+      document.getElementById("gateKeyStatus").style.display=megaGateKey?"inline-block":"none";
+      document.getElementById("expText").textContent=player.exp;
+      document.getElementById("level").textContent=player.level;
+      document.getElementById("playerName").textContent=player.name;
+      updateMarketUI();
+    }
+
+    function normalizeAngle(a) { while(a>Math.PI)a-=Math.PI*2; while(a<-Math.PI)a+=Math.PI*2; return a; }
+
+    function drawGround() {
+      const backdrop=ctx.createLinearGradient(0,0,0,h);
+      backdrop.addColorStop(0,"#090b13");backdrop.addColorStop(.52,"#101018");backdrop.addColorStop(1,"#07070c");
+      ctx.fillStyle=backdrop;ctx.fillRect(0,0,w,h);
+      const camX=-player.x+w/2,camY=-player.y+h/2;
+      const inRegion=Math.hypot(player.x-currentZone.x,player.y-currentZone.y)<=currentZone.radius;
+      ctx.strokeStyle=inRegion?"rgba(255,255,255,.025)":"rgba(171,170,220,.018)";
+      ctx.lineWidth=1;
+      for(let x=-3600;x<=3600;x+=60) { const sx=camX+x; if(sx>-50&&sx<w+50){ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx,h);ctx.stroke();} }
+      for(let y=-3000;y<=3000;y+=60) { const sy=camY+y; if(sy>-50&&sy<h+50){ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(w,sy);ctx.stroke();} }
+      drawGroundDetails();
+      for(const z of zones) {
+        const p=worldToScreen(z.x,z.y);
+        const grd=ctx.createRadialGradient(p.x,p.y,20,p.x,p.y,z.radius);
+        grd.addColorStop(0,z.accent+"55");grd.addColorStop(.55,z.color+"88");grd.addColorStop(1,z.color+"05");
+        ctx.fillStyle=grd;ctx.beginPath();ctx.arc(p.x,p.y,z.radius,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle=z.accent+"55";ctx.setLineDash([12,16]);ctx.beginPath();ctx.arc(p.x,p.y,z.radius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+        ctx.fillStyle="rgba(245,241,231,.78)";ctx.font="900 16px Trebuchet MS";ctx.textAlign="center";
+        ctx.fillText(z.name.toUpperCase(),p.x,p.y-z.radius+60);
+      }
+      drawWorldLandmarks();
+      drawZoneAtmosphere();
+    }
+
+    function drawGroundDetails() {
+      const details=zones.find(zone=>zone.name===currentZone.name)||zones[0];
+      if(Math.hypot(player.x-details.x,player.y-details.y)>details.radius){
+        drawVoidGroundDetails();
+        return;
+      }
+      const pebbleColors={
+        "Safe Zone":["rgba(164,156,189,.16)","rgba(110,116,143,.14)"],
+        "Frossbite":["rgba(191,232,241,.22)","rgba(108,158,174,.17)"],
+        "Fireball":["rgba(238,143,90,.2)","rgba(112,55,47,.24)"],
+        "Nuclear Zone":["rgba(196,218,122,.19)","rgba(79,98,50,.24)"],
+        "Static Zone":["rgba(200,158,225,.2)","rgba(83,63,105,.24)"],
+        "H3ll":["rgba(238,143,90,.2)","rgba(112,55,47,.24)"],
+        "Training Zone":["rgba(121,205,172,.2)","rgba(52,106,91,.2)"],
+        "Market":["rgba(230,198,128,.2)","rgba(113,92,55,.2)"]
+      }[details.name]||["rgba(180,180,180,.15)","rgba(100,100,100,.15)"];
+      ctx.save();
+      for(let i=0;i<150;i++){
+        const x=(i*397%7200)-3600;
+        const y=(i*751%6000)-3000;
+        const p=worldToScreen(x,y);
+        if(p.x<-12||p.x>w+12||p.y<-12||p.y>h+12)continue;
+        const size=1+(i%4)*.65;
+        ctx.fillStyle=pebbleColors[i%2];
+        ctx.beginPath();
+        ctx.ellipse(p.x,p.y,size*1.7,size*.72,(i%7)*.3,0,Math.PI*2);
+        ctx.fill();
+      }
+      ctx.globalAlpha=.55;
+      ctx.strokeStyle=details.accent;
+      ctx.lineWidth=1;
+      for(let i=0;i<24;i++){
+        const x=(i*617%7200)-3600;
+        const y=(i*431%6000)-3000;
+        const p=worldToScreen(x,y);
+        if(p.x<-35||p.x>w+35||p.y<-35||p.y>h+35)continue;
+        const radius=7+(i%5)*4;
+        ctx.beginPath();
+        if(details.name==="Frossbite"){
+          ctx.moveTo(p.x-radius,p.y-radius*.4);ctx.lineTo(p.x,p.y);ctx.lineTo(p.x+radius*.8,p.y-radius*.7);
+          ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+radius*.2,p.y+radius);
+        }else if(details.name==="Fireball"||details.name==="H3ll"){
+          ctx.moveTo(p.x-radius,p.y);ctx.lineTo(p.x-radius*.25,p.y-radius*.18);
+          ctx.lineTo(p.x+radius*.1,p.y+radius*.35);ctx.lineTo(p.x+radius,p.y-radius*.1);
+        }else{
+          ctx.moveTo(p.x-radius,p.y);ctx.lineTo(p.x+radius,p.y);
+          ctx.moveTo(p.x,p.y-radius*.7);ctx.lineTo(p.x+radius*.35,p.y+radius*.7);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawVoidGroundDetails() {
+      const time=performance.now()/1000;
+      ctx.save();
+      for(let i=0;i<100;i++){
+        const x=(i*941+i*i*31)%7200-3600;
+        const y=(i*1543+i*i*17)%6000-3000;
+        const p=worldToScreen(x,y);
+        if(p.x<-5||p.x>w+5||p.y<-5||p.y>h+5)continue;
+        const twinkle=.3+.7*(.5+.5*Math.sin(time*1.6+i*2.7));
+        ctx.globalAlpha=twinkle*(i%9===0?.85:.42);
+        ctx.fillStyle=i%4===0?"#d4c3ff":i%3===0?"#9ed9e7":"#d7d4e5";
+        ctx.beginPath();ctx.arc(p.x,p.y,i%11===0?1.7:1,0,Math.PI*2);ctx.fill();
+      }
+      ctx.globalAlpha=.22;
+      for(let i=0;i<9;i++){
+        const x=(i*1217+i*i*79)%7200-3600;
+        const y=(i*887+i*i*43)%6000-3000;
+        const p=worldToScreen(x,y);
+        if(p.x<-50||p.x>w+50||p.y<-40||p.y>h+40)continue;
+        const drift=Math.sin(time*.22+i)*2;
+        ctx.fillStyle=i%2?"#272736":"#302632";
+        ctx.beginPath();ctx.moveTo(p.x-24,p.y+8);ctx.lineTo(p.x-14,p.y-7+drift);
+        ctx.lineTo(p.x+2,p.y-11+drift);ctx.lineTo(p.x+22,p.y+3);ctx.lineTo(p.x+12,p.y+11);ctx.closePath();ctx.fill();
+        ctx.strokeStyle="rgba(182,166,224,.18)";ctx.lineWidth=1;ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawWorldLandmarks() {
+      const z=zones.find(zone=>zone.name===currentZone.name)||zones[0];
+      if(Math.hypot(player.x-z.x,player.y-z.y)>z.radius)return;
+      const accent=z.accent;
+      for(let i=0;i<15;i++){
+        const angle=i*2.399;
+        const distance=150+(i%5)*76;
+        const p=worldToScreen(z.x+Math.cos(angle)*distance,z.y+Math.sin(angle)*distance);
+        if(p.x<-55||p.x>w+55||p.y<-65||p.y>h+55)continue;
+        const scale=.72+(i%4)*.13;
+        const time=performance.now()/1000;
+        const glow=ctx.createRadialGradient(p.x,p.y+8,1,p.x,p.y+8,35*scale);
+        glow.addColorStop(0,accent+"2e");glow.addColorStop(1,accent+"00");
+        ctx.fillStyle=glow;ctx.beginPath();ctx.ellipse(p.x,p.y+8,35*scale,19*scale,0,0,Math.PI*2);ctx.fill();
+        drawShadow(p.x,p.y+5,18*scale);
+        ctx.save();ctx.translate(p.x,p.y);ctx.scale(scale,scale);
+        if(z.name==="Frossbite"){
+          ctx.fillStyle="#315b6a";ctx.strokeStyle="#bdefff";
+          ctx.beginPath();ctx.moveTo(-17,9);ctx.lineTo(-8,-20);ctx.lineTo(-2,5);ctx.lineTo(7,-29);ctx.lineTo(15,9);ctx.closePath();ctx.fill();ctx.stroke();
+          ctx.strokeStyle="rgba(255,255,255,.55)";ctx.beginPath();ctx.moveTo(7,-29);ctx.lineTo(5,5);ctx.stroke();
+        }else if(z.name==="Fireball"||z.name==="H3ll"){
+          ctx.fillStyle="#272124";ctx.strokeStyle="#6a3330";ctx.lineWidth=2;
+          ctx.beginPath();ctx.moveTo(-20,10);ctx.lineTo(-16,-8);ctx.lineTo(-7,-17);ctx.lineTo(0,-7);ctx.lineTo(10,-20);ctx.lineTo(20,10);ctx.closePath();ctx.fill();ctx.stroke();
+          ctx.strokeStyle="#ff824f";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-5,5);ctx.lineTo(0,-2);ctx.lineTo(4,7);ctx.lineTo(10,1);ctx.stroke();
+        }else if(z.name==="Nuclear Zone"){
+          ctx.fillStyle="#384329";ctx.strokeStyle="#c5f05b";ctx.lineWidth=1.5;
+          ctx.fillRect(-13,-13,26,25);ctx.strokeRect(-13,-13,26,25);
+          ctx.fillStyle="rgba(197,240,91,.58)";ctx.fillRect(-9,-7,18,4);ctx.fillRect(-9,2,18,4);
+          ctx.beginPath();ctx.arc(0,-15,4,0,Math.PI*2);ctx.fill();
+        }else if(z.name==="Static Zone"){
+          ctx.fillStyle="#392d4b";ctx.strokeStyle="#db8cff";ctx.lineWidth=1.5;
+          ctx.beginPath();ctx.moveTo(-16,10);ctx.lineTo(-8,-13);ctx.lineTo(-2,1);ctx.lineTo(6,-24);ctx.lineTo(17,10);ctx.closePath();ctx.fill();ctx.stroke();
+          ctx.strokeStyle="rgba(225,170,255,.7)";ctx.beginPath();ctx.moveTo(-8,3);ctx.lineTo(8,3);ctx.stroke();
+        }else if(z.name==="Market"){
+          ctx.fillStyle="rgba(0,0,0,.38)";ctx.beginPath();ctx.ellipse(0,12,30,10,0,0,Math.PI*2);ctx.fill();
+          ctx.fillStyle="#4a3424";ctx.fillRect(-23,-2,46,16);
+          ctx.strokeStyle="#b58a54";ctx.lineWidth=1.5;ctx.strokeRect(-23,-2,46,16);
+          ctx.fillStyle="#715034";ctx.fillRect(-25,-8,50,7);
+          ctx.strokeStyle="#d3a763";ctx.lineWidth=1.2;ctx.strokeRect(-25,-8,50,7);
+          ctx.fillStyle="#3c2a22";ctx.fillRect(-21,-19,4,12);ctx.fillRect(17,-19,4,12);
+          ctx.fillStyle="#8d352d";ctx.beginPath();ctx.moveTo(-27,-19);ctx.lineTo(-19,-31);ctx.lineTo(19,-31);ctx.lineTo(27,-19);ctx.closePath();ctx.fill();
+          ctx.strokeStyle="#e4bd72";ctx.lineWidth=1.3;ctx.stroke();
+          ctx.fillStyle="#e4bd72";
+          for(let stripe=-2;stripe<=2;stripe++){
+            ctx.beginPath();ctx.moveTo(stripe*9-3,-19);ctx.lineTo(stripe*7-3,-31);ctx.lineTo(stripe*7+3,-31);ctx.lineTo(stripe*9+3,-19);ctx.closePath();ctx.fill();
+          }
+          ctx.fillStyle="#c85a45";ctx.beginPath();ctx.arc(-11,-13,3,0,Math.PI*2);ctx.fill();
+          ctx.fillStyle="#79a16b";ctx.beginPath();ctx.arc(0,-14,3.2,0,Math.PI*2);ctx.fill();
+          ctx.fillStyle="#d7bb79";ctx.fillRect(9,-17,7,8);
+          ctx.fillStyle="#413126";ctx.fillRect(-29,4,10,9);ctx.strokeStyle="#c08b4d";ctx.strokeRect(-29,4,10,9);
+          ctx.fillStyle="#413126";ctx.fillRect(20,3,10,10);ctx.strokeStyle="#c08b4d";ctx.strokeRect(20,3,10,10);
+          ctx.strokeStyle="#c08b4d";ctx.beginPath();ctx.moveTo(-24,4);ctx.lineTo(-24,13);ctx.moveTo(20,8);ctx.lineTo(30,8);ctx.stroke();
+        }else if(z.name==="Training Zone"){
+          ctx.strokeStyle="#9f7243";ctx.lineWidth=4;ctx.lineCap="round";
+          ctx.beginPath();ctx.moveTo(-12,10);ctx.lineTo(-12,-15);ctx.moveTo(12,10);ctx.lineTo(12,-15);ctx.stroke();
+          ctx.strokeStyle="#d2b37c";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-14,-10);ctx.lineTo(14,-10);ctx.stroke();
+        }else{
+          ctx.fillStyle="#363342";ctx.strokeStyle="#a8b4ef";ctx.lineWidth=1.5;
+          ctx.fillRect(-12,-7,24,17);ctx.strokeRect(-12,-7,24,17);
+          ctx.fillStyle="#5b566d";ctx.fillRect(-9,-15,18,8);
+          ctx.strokeStyle="rgba(245,202,103,.72)";ctx.beginPath();ctx.moveTo(0,-13);ctx.lineTo(0,4);ctx.stroke();
+          ctx.fillStyle="rgba(245,202,103,.8)";
+          ctx.beginPath();ctx.arc(0,-17+Math.sin(time*2+i)*1.5,2.5,0,Math.PI*2);ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
+    function drawZoneAtmosphere() {
+      if(Math.hypot(player.x-currentZone.x,player.y-currentZone.y)>currentZone.radius){
+        drawVoidAtmosphere();
+        return;
+      }
+      const time=performance.now()/1000;
+      ctx.save();
+      if(currentZone.name==="Safe Zone"){
+        for(let i=0;i<26;i++){
+          const x=(i*173+Math.sin(time*.4+i)*34)%w;
+          const y=(i*97+Math.sin(time*.55+i*2)*22)%h;
+          const pulse=.5+.5*Math.sin(time*1.5+i);
+          ctx.fillStyle=i%3?"rgba(245,202,103,.72)":"rgba(210,179,255,.68)";
+          ctx.globalAlpha=.12+pulse*.26;
+          ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=7;
+          ctx.beginPath();ctx.arc(x,y,1+(i%3)*.45,0,Math.PI*2);ctx.fill();
+        }
+        ctx.shadowBlur=0;
+      }else if(currentZone.name==="Frossbite"){
+        ctx.fillStyle="rgba(176,238,255,.55)";
+        for(let i=0;i<70;i++){
+          const x=(i*137+time*18)%w;
+          const y=(i*89+time*34)%h;
+          ctx.globalAlpha=.18+(i%5)*.09;
+          ctx.beginPath();ctx.arc(x,y,1+(i%3),0,Math.PI*2);ctx.fill();
+        }
+      }else if(currentZone.name==="Fireball"||currentZone.name==="H3ll"){
+        for(let i=0;i<34;i++){
+          const x=(i*173+Math.sin(time+i)*24)%w;
+          const y=(i*101-time*(12+i%4)*8)%h;
+          ctx.fillStyle=i%3?"rgba(255,111,59,.55)":"rgba(255,206,102,.72)";
+          ctx.globalAlpha=.25+(i%4)*.12;
+          ctx.beginPath();ctx.arc(x,(y+h)%h,1.5+(i%3),0,Math.PI*2);ctx.fill();
+        }
+      }else if(currentZone.name==="Nuclear Zone"){
+        for(let i=0;i<10;i++){
+          const x=(i*193+71)%w,y=(i*127+43)%h;
+          ctx.strokeStyle="rgba(197,240,91,.16)";
+          ctx.lineWidth=1;
+          ctx.beginPath();ctx.ellipse(x,y,18+(i%3)*8,7+(i%2)*4,0,0,Math.PI*2);ctx.stroke();
+        }
+      }else if(currentZone.name==="Static Zone"){
+        ctx.fillStyle="rgba(219,140,255,.07)";
+        for(let i=0;i<9;i++){
+          const y=(i*83+Math.floor(time*6)%83)%h;
+          ctx.fillRect(0,y,w,(i%3)+1);
+        }
+      }else if(currentZone.name==="Market"){
+        const glow=ctx.createRadialGradient(w/2,h/2,10,w/2,h/2,Math.max(w,h)*.65);
+        glow.addColorStop(0,"rgba(242,200,93,.09)");
+        glow.addColorStop(1,"rgba(242,200,93,0)");
+        ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+      }
+      ctx.restore();
+    }
+
+    function drawVoidAtmosphere() {
+      const time=performance.now()/1000;
+      ctx.save();
+      const clouds=[
+        {x:.26,y:.32,r:.42,c:"rgba(83,71,143,.12)"},
+        {x:.75,y:.66,r:.38,c:"rgba(42,109,130,.09)"},
+        {x:.56,y:.18,r:.3,c:"rgba(142,73,102,.08)"}
+      ];
+      for(let i=0;i<clouds.length;i++){
+        const cloud=clouds[i];
+        const x=w*cloud.x+Math.sin(time*.11+i)*24;
+        const y=h*cloud.y+Math.cos(time*.13+i)*18;
+        const radius=Math.max(w,h)*cloud.r;
+        const haze=ctx.createRadialGradient(x,y,0,x,y,radius);
+        haze.addColorStop(0,cloud.c);haze.addColorStop(1,"rgba(0,0,0,0)");
+        ctx.fillStyle=haze;ctx.fillRect(x-radius,y-radius,radius*2,radius*2);
+      }
+      ctx.globalAlpha=.13;
+      ctx.strokeStyle="#b9a3e6";ctx.lineWidth=1;
+      for(let i=0;i<4;i++){
+        const x=w*(.18+i*.22),y=h*(.25+(i%2)*.38);
+        ctx.beginPath();ctx.ellipse(x,y,100+i*24,25+i*8,time*.025+i*.5,0,Math.PI*2);ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawShadow(x,y,r=20) {
+      ctx.fillStyle="rgba(0,0,0,.55)";
+      ctx.beginPath();ctx.ellipse(x,y+r*.55,r,r*.28,0,0,Math.PI*2);ctx.fill();
+    }
+
+    function drawCharacter(x,y,icon,angle,scale=1,enemy=false,appearanceOverride=null,gait=0,walking=false,striking=false,invulnerable=0) {
+      drawShadow(x,y,28*scale);
+      ctx.save();ctx.translate(x,y);ctx.rotate(angle);
+      if(!enemy&&appearanceOverride){
+        const armor=appearanceOverride.armor||"#263a48";
+        const accent=appearanceOverride.accent||"#69b1b9";
+        const knight=appearanceOverride.outfit==="Knight";
+        const rogue=appearanceOverride.outfit==="Rogue";
+        const stride=walking?Math.sin(gait)*5:Math.sin(gait)*.7;
+        const bob=walking?Math.abs(Math.cos(gait))*1.8:Math.sin(gait*.5)*.8;
+        ctx.translate(striking?7*scale:0,-bob*scale);
+        if(invulnerable>0)ctx.globalAlpha=.58+.42*Math.abs(Math.sin(performance.now()/38));
+
+        const limb=(points,width,color)=>{
+          ctx.beginPath();
+          ctx.moveTo(points[0][0]*scale,points[0][1]*scale);
+          for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0]*scale,points[i][1]*scale);
+          ctx.lineCap="round";ctx.lineJoin="round";
+          ctx.strokeStyle="#121319";ctx.lineWidth=(width+3)*scale;ctx.stroke();
+          ctx.strokeStyle=color;ctx.lineWidth=width*scale;ctx.stroke();
+        };
+        const cloakGradient=ctx.createLinearGradient(-18*scale,0,15*scale,24*scale);
+        cloakGradient.addColorStop(0,"#101218");
+        cloakGradient.addColorStop(.52,armor);
+        cloakGradient.addColorStop(1,"#111217");
+        ctx.fillStyle=cloakGradient;
+        ctx.beginPath();
+        ctx.moveTo(-11*scale,-11*scale);ctx.lineTo(-17*scale,1*scale);
+        ctx.lineTo(-13*scale,19*scale);ctx.lineTo(-8*scale,30*scale);
+        ctx.lineTo(-2*scale,21*scale);ctx.lineTo(5*scale,31*scale);
+        ctx.lineTo(14*scale,13*scale);ctx.lineTo(11*scale,-11*scale);ctx.closePath();ctx.fill();
+        ctx.strokeStyle="rgba(7,8,12,.9)";ctx.lineWidth=2*scale;ctx.stroke();
+
+        limb([[-6,-8],[-8,4-stride*.4],[-7+stride*.25,16]],7,rogue?"#24212d":"#34343d");
+        limb([[6,-8],[8,4+stride*.4],[7-stride*.25,16]],7,"#34343d");
+        ctx.fillStyle="#111218";
+        ctx.beginPath();ctx.ellipse((-8+stride*.3)*scale,18*scale,6*scale,3*scale,-.15,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.ellipse((7-stride*.3)*scale,18*scale,6*scale,3*scale,.15,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=accent;ctx.fillRect((-9+stride*.3)*scale,14*scale,4*scale,2*scale);
+        ctx.fillRect((5-stride*.3)*scale,14*scale,4*scale,2*scale);
+
+        ctx.fillStyle="#171820";
+        ctx.beginPath();ctx.roundRect(-13*scale,-12*scale,9*scale,18*scale,3*scale);ctx.fill();
+        ctx.strokeStyle=accent;ctx.lineWidth=1.5*scale;ctx.stroke();
+
+        limb([[-10,-7],[-16,-2],[-14,5]],6,armor);
+        ctx.fillStyle=accent;ctx.beginPath();ctx.arc(-14*scale,5*scale,3*scale,0,Math.PI*2);ctx.fill();
+
+        const torsoGradient=ctx.createLinearGradient(-12*scale,-12*scale,12*scale,14*scale);
+        torsoGradient.addColorStop(0,"#11141a");
+        torsoGradient.addColorStop(.3,armor);
+        torsoGradient.addColorStop(.72,armor);
+        torsoGradient.addColorStop(1,"#14161c");
+        ctx.fillStyle=torsoGradient;
+        ctx.beginPath();
+        ctx.moveTo(-10*scale,-11*scale);ctx.lineTo(-14*scale,-5*scale);
+        ctx.lineTo(-10*scale,9*scale);ctx.lineTo(-7*scale,13*scale);
+        ctx.lineTo(8*scale,13*scale);ctx.lineTo(12*scale,8*scale);
+        ctx.lineTo(14*scale,-5*scale);ctx.lineTo(9*scale,-11*scale);ctx.closePath();ctx.fill();
+        ctx.strokeStyle="#101116";ctx.lineWidth=2*scale;ctx.stroke();
+        ctx.strokeStyle=accent;ctx.lineWidth=2*scale;
+        ctx.beginPath();ctx.moveTo(-8*scale,-5*scale);ctx.lineTo(2*scale,4*scale);ctx.lineTo(8*scale,-5*scale);ctx.stroke();
+        ctx.fillStyle="#11131a";ctx.fillRect(-10*scale,8*scale,20*scale,4*scale);
+        ctx.fillStyle=accent;ctx.fillRect(-1.5*scale,8*scale,4*scale,4*scale);
+
+        ctx.fillStyle=armor;
+        ctx.beginPath();ctx.ellipse(-10*scale,-7*scale,(knight?7:5)*scale,5*scale,-.3,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.ellipse(10*scale,-7*scale,(knight?7:5)*scale,5*scale,.3,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle=accent;ctx.lineWidth=1.5*scale;
+        ctx.beginPath();ctx.ellipse(-10*scale,-7*scale,(knight?7:5)*scale,5*scale,-.3,0,Math.PI*2);ctx.stroke();
+        ctx.beginPath();ctx.ellipse(10*scale,-7*scale,(knight?7:5)*scale,5*scale,.3,0,Math.PI*2);ctx.stroke();
+
+        ctx.fillStyle="#b88569";
+        ctx.beginPath();ctx.ellipse(2*scale,-19*scale,6*scale,8*scale,.08,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=armor;
+        ctx.beginPath();ctx.moveTo(-7*scale,-18*scale);ctx.lineTo(-8*scale,-27*scale);
+        ctx.lineTo(-3*scale,-31*scale);ctx.lineTo(5*scale,-30*scale);
+        ctx.lineTo(9*scale,-24*scale);ctx.lineTo(6*scale,-21*scale);
+        ctx.lineTo(0, -23*scale);ctx.lineTo(-3*scale,-17*scale);ctx.closePath();ctx.fill();
+        ctx.strokeStyle=accent;ctx.lineWidth=1.5*scale;
+        ctx.beginPath();ctx.moveTo(-5*scale,-27*scale);ctx.lineTo(2*scale,-30*scale);ctx.lineTo(7*scale,-25*scale);ctx.stroke();
+        ctx.fillStyle="#10141a";ctx.fillRect(2*scale,-23*scale,6*scale,2.4*scale);
+        ctx.fillStyle="#ffe0a2";ctx.fillRect(6*scale,-23*scale,2*scale,1.3*scale);
+        ctx.fillStyle=accent;ctx.beginPath();ctx.arc(1*scale,1*scale,2.2*scale,0,Math.PI*2);ctx.fill();
+
+        limb([[10,-7],[16,-2],[18,2]],6,armor);
+        ctx.fillStyle=accent;ctx.beginPath();ctx.arc(18*scale,2*scale,3*scale,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle="#241d20";ctx.lineWidth=3*scale;ctx.lineCap="round";
+        ctx.beginPath();ctx.moveTo(18*scale,1*scale);ctx.lineTo((31+(striking?5:0))*scale,-11*scale);ctx.stroke();
+        ctx.strokeStyle="#d7dce0";ctx.lineWidth=2.2*scale;
+        ctx.beginPath();ctx.moveTo(21*scale,-2*scale);ctx.lineTo((35+(striking?7:0))*scale,-19*scale);ctx.lineTo((31+(striking?5:0))*scale,-11*scale);ctx.stroke();
+        ctx.strokeStyle=accent;ctx.lineWidth=1.4*scale;
+        ctx.beginPath();ctx.moveTo(18*scale,-1*scale);ctx.lineTo(22*scale,3*scale);ctx.stroke();
+
+        if(rogue){
+          ctx.strokeStyle=accent;ctx.lineWidth=1.5*scale;
+          ctx.beginPath();ctx.moveTo(-12*scale,-12*scale);ctx.lineTo(-17*scale,7*scale);ctx.stroke();
+        }
+        ctx.restore();
+        return;
+      }
+      if(enemy){
+        const pulse=1+Math.sin(performance.now()/180)*.06;
+        ctx.strokeStyle="rgba(220,48,67,.55)";
+        ctx.lineWidth=2;
+        ctx.beginPath();ctx.arc(0,0,29*scale*pulse,0,Math.PI*2);ctx.stroke();
+        ctx.fillStyle="rgba(170,20,36,.10)";
+        ctx.beginPath();ctx.arc(0,0,38*scale*pulse,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle="#241015";
+        ctx.beginPath();ctx.moveTo(-20*scale,6*scale);ctx.lineTo(-13*scale,40*scale);ctx.lineTo(13*scale,40*scale);ctx.lineTo(20*scale,6*scale);ctx.closePath();ctx.fill();
+        ctx.strokeStyle="#a63748";ctx.lineWidth=3*scale;ctx.stroke();
+      }
+      ctx.fillStyle=enemy?"#63303a":(appearanceOverride?appearanceOverride.armor:"#263a48");
+      ctx.beginPath();ctx.arc(0,0,18*scale,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="rgba(255,255,255,.12)";ctx.beginPath();ctx.arc(-5*scale,-7*scale,5*scale,0,Math.PI*2);ctx.fill();
+      ctx.font=(32*scale)+"px Segoe UI Emoji";
+      ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(icon,0,-4*scale);
+      ctx.restore();
+    }
+
+    function monsterPalette(enemy) {
+      if(enemy.zone==="Frossbite") return {skin:"#89b7c4",dark:"#345b69",light:"#d9f7ff",accent:"#bdefff"};
+      if(enemy.zone==="Fireball") return {skin:"#9a4a32",dark:"#451e20",light:"#ed9a58",accent:"#ff9a4d"};
+      if(enemy.zone==="Nuclear Zone") return {skin:"#7a8d3d",dark:"#313d20",light:"#c8df72",accent:"#d0f06b"};
+      if(enemy.zone==="Static Zone") return {skin:"#74618a",dark:"#302840",light:"#c2a2df",accent:"#e1aaff"};
+      return {skin:"#718078",dark:"#303a36",light:"#b7c0a7",accent:"#d4d9ba"};
+    }
+
+    function ellipse(cx,cy,rx,ry,rotation=0) {
+      ctx.beginPath();
+      ctx.ellipse(cx,cy,rx,ry,rotation,0,Math.PI*2);
+    }
+
+    function fillMonsterGradient(palette, x,y,r,scale) {
+      const gradient=ctx.createRadialGradient(x-r*.35,y-r*.45,r*.05,x,y,r);
+      gradient.addColorStop(0,palette.light);
+      gradient.addColorStop(.38,palette.skin);
+      gradient.addColorStop(1,palette.dark);
+      ctx.fillStyle=gradient;
+    }
+
+    function drawMonsterEyes(enemy,palette,scale,faceY=-8*scale,spread=7*scale) {
+      ctx.fillStyle="#f3e9b7";
+      ellipse(-spread,faceY,3.4*scale,2.1*scale,-.08);ctx.fill();
+      ellipse(spread,faceY,3.4*scale,2.1*scale,.08);ctx.fill();
+      ctx.fillStyle=enemy.zone==="Nuclear Zone"?"#dfff2f":"#27151a";
+      ellipse(-spread,faceY,1.25*scale,1.8*scale);ctx.fill();
+      ellipse(spread,faceY,1.25*scale,1.8*scale);ctx.fill();
+    }
+
+    function drawQuadruped(enemy,palette,scale) {
+      ctx.save();
+      ctx.strokeStyle=palette.dark;
+      ctx.lineWidth=7*scale;
+      ctx.lineCap="round";
+      ctx.beginPath();ctx.moveTo(-10*scale,14*scale);ctx.lineTo(-16*scale,31*scale);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(10*scale,14*scale);ctx.lineTo(16*scale,31*scale);ctx.stroke();
+      fillMonsterGradient(palette,-2*scale,6*scale,22*scale,scale);
+      ellipse(-1*scale,7*scale,24*scale,17*scale,.05);ctx.fill();
+      ctx.strokeStyle=palette.accent+"88";ctx.lineWidth=1.5*scale;
+      ellipse(-1*scale,7*scale,24*scale,17*scale,.05);ctx.stroke();
+      ctx.translate(19*scale,-1*scale);
+      fillMonsterGradient(palette,0,0,14*scale,scale);
+      ellipse(0,0,15*scale,13*scale,.08);ctx.fill();
+      ctx.fillStyle=palette.dark;
+      ellipse(10*scale,4*scale,7*scale,5*scale);ctx.fill();
+      ctx.restore();
+      ctx.save();
+      ctx.translate(19*scale,-1*scale);
+      drawMonsterEyes(enemy,palette,scale,-4*scale,5*scale);
+      ctx.restore();
+    }
+
+    function drawHumanoid(enemy,palette,scale,brute=false) {
+      ctx.strokeStyle=palette.dark;
+      ctx.lineCap="round";
+      ctx.lineWidth=(brute?10:7)*scale;
+      ctx.beginPath();ctx.moveTo(-10*scale,14*scale);ctx.lineTo(-16*scale,34*scale);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(10*scale,14*scale);ctx.lineTo(16*scale,34*scale);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-16*scale,4*scale);ctx.lineTo(-27*scale,20*scale);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(16*scale,4*scale);ctx.lineTo(27*scale,20*scale);ctx.stroke();
+      fillMonsterGradient(palette,0,11*scale,(brute?27:21)*scale,scale);
+      ellipse(0,11*scale,(brute?23:16)*scale,(brute?27:24)*scale,0);ctx.fill();
+      fillMonsterGradient(palette,0,-13*scale,17*scale,scale);
+      ellipse(0,-13*scale,15*scale,14*scale,0);ctx.fill();
+      ctx.fillStyle=palette.dark;
+      ellipse(-7*scale,-14*scale,3*scale,1.5*scale,-.12);ctx.fill();
+      ellipse(7*scale,-14*scale,3*scale,1.5*scale,.12);ctx.fill();
+      ctx.fillStyle="#120e11";
+      ellipse(0,-4*scale,5*scale,2*scale);ctx.fill();
+      if(enemy.hit>0){
+        ctx.strokeStyle="rgba(255,255,255,.8)";
+        ctx.lineWidth=2*scale;
+        ellipse(0,-5*scale,23*scale,32*scale);ctx.stroke();
+      }
+    }
+
+    function drawOctopus(enemy,palette,scale) {
+      fillMonsterGradient(palette,0,-4*scale,20*scale,scale);
+      ellipse(0,-5*scale,20*scale,23*scale);ctx.fill();
+      ctx.strokeStyle=palette.dark;
+      ctx.lineCap="round";
+      ctx.lineWidth=6*scale;
+      for(let i=-3;i<=3;i++){
+        ctx.beginPath();
+        ctx.moveTo(i*5*scale,12*scale);
+        ctx.bezierCurveTo(i*7*scale,24*scale,(i*4*scale+8*Math.sin(performance.now()/300+i))*scale,31*scale,i*5*scale,38*scale);
+        ctx.stroke();
+      }
+      drawMonsterEyes(enemy,palette,scale,-9*scale,7*scale);
+    }
+
+    function drawEyeMonster(enemy,palette,scale) {
+      ctx.save();
+      ctx.globalAlpha=.8;
+      ctx.strokeStyle=palette.accent+"88";
+      ctx.lineWidth=2*scale;
+      for(let i=0;i<8;i++){
+        const angle=i*Math.PI/4;
+        ctx.beginPath();ctx.moveTo(Math.cos(angle)*18*scale,Math.sin(angle)*18*scale);
+        ctx.lineTo(Math.cos(angle)*29*scale,Math.sin(angle)*29*scale);ctx.stroke();
+      }
+      ctx.restore();
+      fillMonsterGradient(palette,0,0,21*scale,scale);
+      ellipse(0,0,22*scale,16*scale);ctx.fill();
+      ctx.fillStyle="#bc9fcf";
+      ellipse(0,0,10*scale,11*scale);ctx.fill();
+      ctx.fillStyle=enemy.name==="The BCob"?"#ff5b73":"#3a1a54";
+      ellipse(2*scale,0,5*scale,7*scale);ctx.fill();
+      ctx.fillStyle="#0b0910";
+      ellipse(3*scale,0,2*scale,4*scale);ctx.fill();
+    }
+
+    function drawMonster(enemy,x,y,scale) {
+      const palette=monsterPalette(enemy);
+      drawShadow(x,y,27*scale);
+      ctx.save();
+      ctx.translate(x,y);
+      ctx.rotate(enemy.angle);
+
+      if(enemy.hit>0){
+        ctx.globalCompositeOperation="screen";
+      }
+
+      if(enemy.icon==="🎯"){
+        ctx.fillStyle="#7f5a32";ctx.fillRect(-22*scale,-18*scale,44*scale,36*scale);
+        ctx.strokeStyle="#d1ad76";ctx.lineWidth=4*scale;ctx.strokeRect(-22*scale,-18*scale,44*scale,36*scale);
+        ctx.fillStyle="#d84b50";
+        ellipse(0,0,10*scale,10*scale);ctx.fill();
+        ctx.fillStyle="#f1d89a";
+        ellipse(0,0,4*scale,4*scale);ctx.fill();
+        ctx.restore();return;
+      }
+      if(enemy.icon==="🐙") drawOctopus(enemy,palette,scale);
+      else if(enemy.icon==="👁") drawEyeMonster(enemy,palette,scale);
+      else if(["🐺","🐻‍❄️","🦖","🐀","🐱"].includes(enemy.icon)) drawQuadruped(enemy,palette,scale);
+      else if(enemy.icon==="👻"){
+        fillMonsterGradient(palette,0,-4*scale,23*scale,scale);
+        ctx.beginPath();ctx.moveTo(-19*scale,-8*scale);ctx.quadraticCurveTo(-17*scale,-31*scale,0,-32*scale);
+        ctx.quadraticCurveTo(18*scale,-31*scale,20*scale,-8*scale);ctx.lineTo(13*scale,28*scale);
+        ctx.lineTo(5*scale,20*scale);ctx.lineTo(-3*scale,29*scale);ctx.lineTo(-12*scale,19*scale);ctx.closePath();ctx.fill();
+        drawMonsterEyes(enemy,palette,scale,-14*scale,7*scale);
+      }else if(enemy.icon==="🗿"||enemy.name==="Jam Jam"){
+        drawHumanoid(enemy,palette,scale,true);
+        if(enemy.icon==="🗿"){
+          ctx.strokeStyle=palette.light+"66";ctx.lineWidth=1*scale;
+          ctx.beginPath();ctx.moveTo(-18*scale,-5*scale);ctx.lineTo(17*scale,14*scale);ctx.stroke();
+        }
+      }else if(["🐉","😈","👹","🧟","♛","🍯","👾"].includes(enemy.icon)){
+        if(enemy.icon==="🐉"){
+          ctx.fillStyle=palette.dark+"bb";
+          ctx.beginPath();ctx.moveTo(-12*scale,-8*scale);ctx.lineTo(-34*scale,-25*scale);ctx.lineTo(-27*scale,4*scale);ctx.closePath();ctx.fill();
+          ctx.beginPath();ctx.moveTo(12*scale,-8*scale);ctx.lineTo(34*scale,-25*scale);ctx.lineTo(27*scale,4*scale);ctx.closePath();ctx.fill();
+        }
+        drawHumanoid(enemy,palette,scale,enemy.icon==="🧟"||enemy.icon==="🍯");
+        if(enemy.icon==="😈"){
+          ctx.fillStyle=palette.dark;
+          ctx.beginPath();ctx.moveTo(-12*scale,-22*scale);ctx.lineTo(-17*scale,-36*scale);ctx.lineTo(-5*scale,-25*scale);ctx.fill();
+          ctx.beginPath();ctx.moveTo(12*scale,-22*scale);ctx.lineTo(17*scale,-36*scale);ctx.lineTo(5*scale,-25*scale);ctx.fill();
+        }
+      }else{
+        drawHumanoid(enemy,palette,scale,false);
+      }
+
+      if(enemy.hit>0){
+        ctx.globalCompositeOperation="source-over";
+        ctx.strokeStyle="rgba(255,255,255,.9)";
+        ctx.lineWidth=3*scale;
+        ellipse(0,0,29*scale,38*scale);ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawNelson(x,y,time) {
+      const bob=Math.sin(time*1.8)*1.2;
+      drawShadow(x,y,28);
+      ctx.save();
+      ctx.translate(x,y+bob);
+      ctx.fillStyle="#241b18";
+      ctx.beginPath();ctx.moveTo(-15,-8);ctx.lineTo(-20,20);ctx.lineTo(-13,34);ctx.lineTo(13,34);ctx.lineTo(20,20);ctx.lineTo(15,-8);ctx.closePath();ctx.fill();
+      ctx.strokeStyle="#b8734a";ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle="#8a4937";
+      ctx.beginPath();ctx.moveTo(-12,-14);ctx.lineTo(-16,8);ctx.lineTo(-8,24);ctx.lineTo(8,24);ctx.lineTo(16,8);ctx.lineTo(12,-14);ctx.closePath();ctx.fill();
+      ctx.fillStyle="#d6a276";ctx.beginPath();ctx.ellipse(0,-23,8,10,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="#5b3228";
+      ctx.beginPath();ctx.moveTo(-8,-28);ctx.quadraticCurveTo(0,-34,8,-28);ctx.lineTo(7,-20);ctx.quadraticCurveTo(0,-16,-7,-20);ctx.closePath();ctx.fill();
+      ctx.fillStyle="#bca183";
+      ctx.beginPath();ctx.moveTo(-10,-29);ctx.lineTo(-7,-36);ctx.lineTo(-2,-31);ctx.lineTo(2,-37);ctx.lineTo(7,-31);ctx.lineTo(10,-29);ctx.closePath();ctx.fill();
+      ctx.strokeStyle="#edb46f";ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(-12,-2);ctx.lineTo(12,-2);ctx.moveTo(0,-12);ctx.lineTo(0,18);ctx.stroke();
+      ctx.fillStyle="#ffce8a";ctx.beginPath();ctx.arc(0,-1,3,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+
+    function drawMarketKeeper(x,y,time) {
+      const bob=Math.sin(time*1.35)*1.1;
+      drawShadow(x,y,29);
+      ctx.save();
+      ctx.translate(x,y+bob);
+      ctx.fillStyle="#2b281e";
+      ctx.beginPath();ctx.moveTo(-17,-8);ctx.lineTo(-23,24);ctx.lineTo(-12,35);ctx.lineTo(12,35);ctx.lineTo(23,24);ctx.lineTo(17,-8);ctx.closePath();ctx.fill();
+      ctx.strokeStyle="#c79b53";ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle="#4a4030";
+      ctx.beginPath();ctx.moveTo(-13,-13);ctx.lineTo(-16,12);ctx.lineTo(-8,26);ctx.lineTo(8,26);ctx.lineTo(16,12);ctx.lineTo(13,-13);ctx.closePath();ctx.fill();
+      ctx.fillStyle="#d1aa7b";ctx.beginPath();ctx.ellipse(0,-23,8,10,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="#32291f";
+      ctx.beginPath();ctx.moveTo(-9,-28);ctx.lineTo(-6,-35);ctx.lineTo(0,-31);ctx.lineTo(6,-35);ctx.lineTo(9,-28);ctx.quadraticCurveTo(0,-34,-9,-28);ctx.closePath();ctx.fill();
+      ctx.fillStyle="#f2d28b";ctx.beginPath();ctx.moveTo(-11,-31);ctx.lineTo(-15,-42);ctx.lineTo(-5,-36);ctx.lineTo(0,-45);ctx.lineTo(5,-36);ctx.lineTo(15,-42);ctx.lineTo(11,-31);ctx.closePath();ctx.fill();
+      ctx.strokeStyle="#fff1b7";ctx.lineWidth=1;ctx.stroke();
+      ctx.fillStyle="#67b3a0";ctx.beginPath();ctx.arc(0,-37,2.5,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle="#d9b86d";ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(-12,-2);ctx.lineTo(-20,10);ctx.moveTo(12,-2);ctx.lineTo(20,10);ctx.stroke();
+      ctx.fillStyle="#7caea1";
+      ctx.beginPath();ctx.arc(-20,11,4,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(20,11,4,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+
+    function drawKingMilan(x,y,time) {
+      const bob=Math.sin(time*1.6)*1.5;
+      drawShadow(x,y,30);
+      ctx.save();
+      ctx.translate(x,y+bob);
+      ctx.fillStyle="#401b2a";
+      ctx.beginPath();ctx.moveTo(-14,-3);ctx.lineTo(-22,25);ctx.lineTo(-13,34);ctx.lineTo(13,34);ctx.lineTo(22,25);ctx.lineTo(14,-3);ctx.closePath();ctx.fill();
+      ctx.strokeStyle="#c59a53";ctx.lineWidth=2;ctx.stroke();
+      const robe=ctx.createLinearGradient(-14,-8,14,30);
+      robe.addColorStop(0,"#45537d");robe.addColorStop(.52,"#273250");robe.addColorStop(1,"#171b2a");
+      ctx.fillStyle=robe;
+      ctx.beginPath();ctx.moveTo(-11,-15);ctx.lineTo(-15,8);ctx.lineTo(-9,27);ctx.lineTo(0,22);ctx.lineTo(9,27);ctx.lineTo(15,8);ctx.lineTo(11,-15);ctx.closePath();ctx.fill();
+      ctx.strokeStyle="#d8b15f";ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle="#f1d27f";ctx.fillRect(-2,-13,4,30);
+      ctx.beginPath();ctx.moveTo(0,-2);ctx.lineTo(4,4);ctx.lineTo(0,10);ctx.lineTo(-4,4);ctx.closePath();ctx.fill();
+      ctx.fillStyle="#a98248";
+      ctx.beginPath();ctx.ellipse(-11,-9,7,5,-.35,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(11,-9,7,5,.35,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle="#f0d483";ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.ellipse(-11,-9,7,5,-.35,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.ellipse(11,-9,7,5,.35,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle="#d5aa80";ctx.beginPath();ctx.ellipse(0,-23,8,10,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="#573528";ctx.beginPath();ctx.moveTo(-8,-27);ctx.quadraticCurveTo(0,-33,8,-27);ctx.lineTo(7,-20);ctx.quadraticCurveTo(0,-16,-7,-20);ctx.closePath();ctx.fill();
+      ctx.fillStyle="#f1d483";ctx.beginPath();ctx.moveTo(-11,-30);ctx.lineTo(-9,-42);ctx.lineTo(-3,-35);ctx.lineTo(0,-45);ctx.lineTo(4,-35);ctx.lineTo(10,-42);ctx.lineTo(11,-29);ctx.closePath();ctx.fill();
+      ctx.strokeStyle="#fff0b5";ctx.lineWidth=1.2;ctx.stroke();
+      ctx.fillStyle="#9f3147";ctx.beginPath();ctx.arc(0,-37,2.4,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle="#d7dce0";ctx.lineWidth=2.2;
+      ctx.beginPath();ctx.moveTo(16,-4);ctx.lineTo(22,-30);ctx.stroke();
+      ctx.strokeStyle="#f1d483";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(12,-5);ctx.lineTo(21,-3);ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawWorldCharacters() {
+      if(currentZone.name==="Safe Zone")drawMegaGate();
+      for(const npc of npcs) {
+        if((npc.zone!==currentZone.name&&!npc.following)||npc.active===false) continue;
+        const p=worldToScreen(npc.x,npc.y);
+        const nearby=Math.hypot(player.x-npc.x,player.y-npc.y)<90;
+        const pulse=1+Math.sin(performance.now()/420+npc.phase)*.08;
+        const glow=ctx.createRadialGradient(p.x,p.y+24,3,p.x,p.y+24,56*pulse);
+        glow.addColorStop(0,npc.color+"44");glow.addColorStop(1,npc.color+"00");
+        ctx.fillStyle=glow;ctx.beginPath();ctx.ellipse(p.x,p.y+24,56*pulse,30*pulse,0,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle=npc.color+(nearby?"cc":"55");
+        ctx.lineWidth=nearby?2.5:1;
+        ctx.beginPath();ctx.ellipse(p.x,p.y+38,32*pulse,10*pulse,0,0,Math.PI*2);ctx.stroke();
+        if(nearby){
+          ctx.strokeStyle=npc.color+"66";ctx.lineWidth=1;
+          ctx.beginPath();ctx.ellipse(p.x,p.y+38,43,15,0,0,Math.PI*2);ctx.stroke();
+        }
+        if(npc.name==="King Milan")drawKingMilan(p.x,p.y,npc.phase);
+        else if(npc.name==="Nelson")drawNelson(p.x,p.y,npc.phase);
+        else if(npc.name==="Market Keeper")drawMarketKeeper(p.x,p.y,npc.phase);
+        else drawCharacter(p.x,p.y,npc.icon,0,1,false);
+        ctx.font="900 11px Trebuchet MS";ctx.textAlign="center";
+        const labelWidth=ctx.measureText(npc.name).width+18;
+        ctx.fillStyle="rgba(6,7,10,.78)";ctx.fillRect(p.x-labelWidth/2,p.y-67,labelWidth,20);
+        ctx.fillStyle=npc.color;ctx.shadowColor="#000";ctx.shadowBlur=6;
+        ctx.fillText(npc.name,p.x,p.y-53);ctx.shadowBlur=0;
+        if(npc.trapped){
+          ctx.strokeStyle="#b8a69a";ctx.lineWidth=2;
+          for(let bar=-2;bar<=2;bar++){
+            ctx.beginPath();ctx.moveTo(p.x+bar*8,p.y-22);ctx.lineTo(p.x+bar*8,p.y+22);ctx.stroke();
+          }
+          ctx.beginPath();ctx.moveTo(p.x-18,p.y-12);ctx.lineTo(p.x+18,p.y-12);
+          ctx.moveTo(p.x-18,p.y+7);ctx.lineTo(p.x+18,p.y+7);ctx.stroke();
+        }
+      }
+      for(const enemy of enemies) {
+        if(enemy.dead||(!isBossActive(enemy)&&!enemy.isBoss)||Math.hypot(player.x-enemy.x,player.y-enemy.y)>900) continue;
+        const p=worldToScreen(enemy.x,enemy.y);
+        const boss=enemy.isBoss||enemy.isFinalBoss;
+        const scale=enemy.isFinalBoss?2:enemy.isBoss?1.45:1;
+        drawMonster(enemy,p.x,p.y,scale);
+        ctx.fillStyle=boss?(isBossActive(enemy)?"#ff5968":"#a59a8f"):"#f2eee4";
+        ctx.font=(boss?"900 13":"900 11")+"px Trebuchet MS";ctx.textAlign="center";
+        ctx.shadowColor="#000";ctx.shadowBlur=6;
+        ctx.fillText(boss&&!isBossActive(enemy)?"SEALED · "+enemy.name:enemy.name,p.x,p.y-(48*scale+8));
+        ctx.shadowBlur=0;
+        const healthY=p.y-40*scale;
+        ctx.fillStyle="rgba(0,0,0,.8)";ctx.fillRect(p.x-31*scale,healthY-1,62*scale,7);
+        ctx.fillStyle="#351018";ctx.fillRect(p.x-30*scale,healthY,60*scale,5);
+        ctx.fillStyle=boss?"#ff6570":"#e84a57";ctx.fillRect(p.x-30*scale,healthY,60*scale*Math.max(0,enemy.health/enemy.maxHealth),5);
+        ctx.fillStyle=boss&&!isBossActive(enemy)?"#aaa":"#f4c765";ctx.font="900 9px Trebuchet MS";ctx.textAlign="center";
+        ctx.shadowColor="#000";ctx.shadowBlur=5;
+        ctx.fillText(boss&&!isBossActive(enemy)?"DEFEAT 5 MINIONS":"POW "+enemy.power+" • HP "+Math.max(0,Math.ceil(enemy.health)),p.x,p.y-26*scale);
+        ctx.shadowBlur=0;
+      }
+    }
+
+    function drawMegaGate() {
+      const p=worldToScreen(megaGate.x,megaGate.y);
+      if(p.x<-100||p.x>w+100||p.y<-120||p.y>h+100)return;
+      const pulse=1+Math.sin(performance.now()/500)*.06;
+      const glow=ctx.createRadialGradient(p.x,p.y+4,3,p.x,p.y+4,78);
+      glow.addColorStop(0,megaGateKey?"rgba(255,224,151,.55)":"rgba(126,91,57,.22)");
+      glow.addColorStop(1,"rgba(245,202,103,0)");
+      ctx.fillStyle=glow;ctx.beginPath();ctx.ellipse(p.x,p.y+4,78,40,0,0,Math.PI*2);ctx.fill();
+      drawShadow(p.x,p.y+5,35);
+      ctx.fillStyle="#1a1718";ctx.fillRect(p.x-30,p.y-72,60,78);
+      ctx.fillStyle=megaGateKey?"rgba(255,224,151,.24)":"rgba(99,76,51,.18)";
+      ctx.fillRect(p.x-22,p.y-62,44,66);
+      ctx.shadowColor=megaGateKey?"#ffe09a":"#9d7544";ctx.shadowBlur=megaGateKey?18:7;
+      ctx.strokeStyle=megaGateKey?"#ffe09a":"#9d7544";ctx.lineWidth=4;
+      ctx.beginPath();ctx.moveTo(p.x-32,p.y+4);ctx.lineTo(p.x-32,p.y-40);
+      ctx.quadraticCurveTo(p.x-32,p.y-83,p.x,p.y-83);
+      ctx.quadraticCurveTo(p.x+32,p.y-83,p.x+32,p.y-40);
+      ctx.lineTo(p.x+32,p.y+4);ctx.stroke();
+      ctx.shadowBlur=0;
+      ctx.fillStyle=megaGateKey?"#fff0bd":"#b9a17c";
+      ctx.font="900 10px Trebuchet MS";ctx.textAlign="center";ctx.shadowColor="#000";ctx.shadowBlur=6;
+      ctx.fillText(megaGateKey?"GATE · OPEN":"MEGA GATE",p.x,p.y+22);ctx.shadowBlur=0;
+      if(megaGateKey&&npcs.find(npc=>npc.name==="Nelson"&&npc.following)){
+        ctx.strokeStyle="#ffe09a";ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.ellipse(p.x,p.y+4,43*pulse,12*pulse,0,0,Math.PI*2);ctx.stroke();
+      }
+    }
+
+    function drawPortal() {
+      for(const z of zones) {
+        if(z.name===currentZone.name) continue;
+        const destination=waystonePosition(z);
+        const p=worldToScreen(destination.x,destination.y);
+        if(p.x<-300||p.x>w+300||p.y<-300||p.y>h+300) continue;
+        const portalLocked=z.name==="H3ll"&&player.keys<20;
+        const portalAccent=portalLocked?"#6a4e47":z.accent;
+        const pulse=1+Math.sin(performance.now()/450+z.x)*.04;
+        const glow=ctx.createRadialGradient(p.x,p.y-14,4,p.x,p.y-14,68);
+        glow.addColorStop(0,portalAccent+"55");glow.addColorStop(.6,portalAccent+"18");glow.addColorStop(1,portalAccent+"00");
+        ctx.fillStyle=glow;ctx.beginPath();ctx.ellipse(p.x,p.y-12,66,72,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle="rgba(0,0,0,.42)";ctx.fillRect(p.x-38,p.y-62,76,102);
+        ctx.save();ctx.translate(p.x,p.y-12);ctx.rotate(performance.now()/6000+z.x*.001);
+        ctx.setLineDash(portalLocked?[4,6]:[12,6]);ctx.strokeStyle=portalAccent+"aa";ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.ellipse(0,0,39*pulse,54*pulse,0,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+        ctx.restore();
+        ctx.shadowColor=portalAccent;ctx.shadowBlur=portalLocked?2:14;ctx.strokeStyle=portalAccent;ctx.lineWidth=3;
+        ctx.beginPath();ctx.ellipse(p.x,p.y-12,28*pulse,45*pulse,0,0,Math.PI*2);ctx.stroke();
+        ctx.fillStyle=portalAccent+"28";ctx.beginPath();ctx.ellipse(p.x,p.y-12,23,39,0,0,Math.PI*2);ctx.fill();
+        ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.font="900 11px Trebuchet MS";ctx.textAlign="center";
+        ctx.shadowColor="#000";ctx.shadowBlur=6;ctx.fillText(portalLocked?"H3LL · 20 KEYS":z.name,p.x,p.y+76);ctx.shadowBlur=0;
+      }
+      const waystone=waystonePosition(currentZone);
+      const p=worldToScreen(waystone.x,waystone.y);
+      if(p.x>-70&&p.x<w+70&&p.y>-80&&p.y<h+80){
+        ctx.strokeStyle=currentZone.accent+"88";ctx.lineWidth=1.5;ctx.setLineDash([8,7]);
+        ctx.beginPath();ctx.ellipse(p.x,p.y+18,43,13,0,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+        ctx.fillStyle="#fff";ctx.font="900 8px Trebuchet MS";ctx.textAlign="center";ctx.shadowColor="#000";ctx.shadowBlur=5;
+        ctx.fillText("WAYSTONE · E",p.x,p.y+39);ctx.shadowBlur=0;
+      }
+      if(currentZone.name==="Market"&&!nelsonRiftClosed&&!marketSecretPortal.closed&&nelsonVisitCount===0&&marketSecretPortal.discovered){
+        const hidden=worldToScreen(marketSecretPortal.x,marketSecretPortal.y);
+        if(hidden.x>-55&&hidden.x<w+55&&hidden.y>-55&&hidden.y<h+55){
+          const pulse=1+Math.sin(performance.now()/210)*.12;
+          const glow=ctx.createRadialGradient(hidden.x,hidden.y,1,hidden.x,hidden.y,24);
+          glow.addColorStop(0,"rgba(157,122,255,.35)");glow.addColorStop(1,"rgba(157,122,255,0)");
+          ctx.fillStyle=glow;ctx.beginPath();ctx.arc(hidden.x,hidden.y,24,0,Math.PI*2);ctx.fill();
+          ctx.strokeStyle="#b7a3ff";ctx.lineWidth=2;
+          ctx.beginPath();ctx.ellipse(hidden.x,hidden.y-2,7*pulse,12*pulse,0,0,Math.PI*2);ctx.stroke();
+          ctx.fillStyle="rgba(70,49,116,.7)";ctx.beginPath();ctx.ellipse(hidden.x,hidden.y-2,4,9,0,0,Math.PI*2);ctx.fill();
+          ctx.fillStyle="#ded5ff";ctx.beginPath();ctx.arc(hidden.x,hidden.y+13,1.8,0,Math.PI*2);ctx.fill();
+        }
+      }
+      if(currentZone.name==="H3ll"&&!nelsonRiftClosed&&!hellReturnPortal.closed&&nelsonSecretAccess){
+        const exit=worldToScreen(hellReturnPortal.x,hellReturnPortal.y);
+        if(exit.x>-65&&exit.x<w+65&&exit.y>-70&&exit.y<h+70){
+          const pulse=1+Math.sin(performance.now()/240)*.1;
+          const glow=ctx.createRadialGradient(exit.x,exit.y,1,exit.x,exit.y,30);
+          glow.addColorStop(0,"rgba(255,132,79,.4)");glow.addColorStop(1,"rgba(255,132,79,0)");
+          ctx.fillStyle=glow;ctx.beginPath();ctx.arc(exit.x,exit.y,30,0,Math.PI*2);ctx.fill();
+          ctx.strokeStyle="#ffad75";ctx.lineWidth=2.5;
+          ctx.beginPath();ctx.ellipse(exit.x,exit.y-3,9*pulse,15*pulse,0,0,Math.PI*2);ctx.stroke();
+          ctx.fillStyle="rgba(109,42,37,.78)";ctx.beginPath();ctx.ellipse(exit.x,exit.y-3,5,11,0,0,Math.PI*2);ctx.fill();
+          ctx.fillStyle="#ffe2c3";ctx.font="900 8px Trebuchet MS";ctx.textAlign="center";ctx.shadowColor="#000";ctx.shadowBlur=5;
+          ctx.fillText("MARKET RIFT · E",exit.x,exit.y+27);ctx.shadowBlur=0;
+        }
+      }
+    }
+
+    function drawAttack() {
+      if(attackFlash<=0)return;
+      const p=worldToScreen(player.x,player.y);
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(player.angle);ctx.globalAlpha=attackFlash/.28;
+      ctx.strokeStyle="#fff";ctx.lineWidth=5;ctx.beginPath();ctx.arc(0,0,72,-.7,.7);ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawProjectiles() {
+      for(const projectile of projectiles){
+        const p=worldToScreen(projectile.x,projectile.y);
+        ctx.save();
+        ctx.translate(p.x,p.y);
+        ctx.rotate(Math.atan2(projectile.dy,projectile.dx));
+        ctx.shadowColor=projectile.color;ctx.shadowBlur=12;ctx.fillStyle=projectile.color;
+        if(projectile.shape==="orb"){
+          ctx.beginPath();ctx.arc(0,0,projectile.radius,0,Math.PI*2);ctx.fill();
+          ctx.fillStyle="#e8ffff";ctx.beginPath();ctx.arc(-2,-2,projectile.radius*.35,0,Math.PI*2);ctx.fill();
+        }else if(projectile.shape==="heavy"){
+          ctx.fillRect(-10,-projectile.radius,21,projectile.radius*2);
+          ctx.fillStyle="#fff0bd";ctx.fillRect(-7,-projectile.radius+3,14,3);
+        }else{
+          ctx.beginPath();
+          ctx.moveTo(10,0);ctx.lineTo(-7,-5);ctx.lineTo(-3,0);ctx.lineTo(-7,5);ctx.closePath();
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
+    function drawEnemyProjectiles() {
+      for(const projectile of enemyProjectiles){
+        const p=worldToScreen(projectile.x,projectile.y);
+        const pulse=1+Math.sin(performance.now()/90+p.x)*.18;
+        ctx.save();
+        ctx.shadowColor=projectile.color;ctx.shadowBlur=18;
+        ctx.fillStyle=projectile.color;
+        ctx.beginPath();ctx.arc(p.x,p.y,projectile.radius*pulse,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle="rgba(255,235,194,.9)";
+        ctx.beginPath();ctx.arc(p.x-projectile.radius*.22,p.y-projectile.radius*.22,projectile.radius*.35,0,Math.PI*2);ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function drawCombatEffects() {
+      for(const effect of visualEffects){
+        const p=worldToScreen(effect.x,effect.y);
+        const alpha=Math.max(0,effect.life/effect.maxLife);
+        ctx.save();
+        ctx.globalAlpha=alpha;
+        ctx.strokeStyle=effect.color;
+        ctx.fillStyle=effect.color;
+        ctx.shadowColor=effect.color;
+        ctx.shadowBlur=effect.kind==="ring"?12:8;
+        if(effect.kind==="ring"){
+          const progress=1-alpha;
+          ctx.lineWidth=Math.max(.7,2.4*alpha);
+          ctx.beginPath();
+          ctx.arc(p.x,p.y,effect.radius*(.72+progress*.65),0,Math.PI*2);
+          ctx.stroke();
+        }else{
+          ctx.beginPath();
+          ctx.arc(p.x,p.y,effect.size*alpha,0,Math.PI*2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
+    function drawScreenVignette() {
+      const gradient=ctx.createRadialGradient(w/2,h/2,Math.min(w,h)*.18,w/2,h/2,Math.max(w,h)*.76);
+      gradient.addColorStop(0,"rgba(0,0,0,0)");
+      gradient.addColorStop(.68,"rgba(0,0,0,.08)");
+      gradient.addColorStop(1,"rgba(0,0,0,.48)");
+      ctx.fillStyle=gradient;
+      ctx.fillRect(0,0,w,h);
+    }
+
+    function drawMiniMap() {
+      const mapCanvas=document.getElementById("miniMapCanvas");
+      const mapCtx=mapCanvas.getContext("2d");
+      const rect=mapCanvas.getBoundingClientRect();
+      if(mapCanvas.width!==Math.round(rect.width*devicePixelRatio)||mapCanvas.height!==Math.round(rect.height*devicePixelRatio)){
+        mapCanvas.width=Math.round(rect.width*devicePixelRatio);
+        mapCanvas.height=Math.round(rect.height*devicePixelRatio);
+      }
+      mapCtx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+      const mw=rect.width,mh=rect.height;
+      mapCtx.clearRect(0,0,mw,mh);
+      mapCtx.fillStyle="#090b10";
+      mapCtx.fillRect(0,0,mw,mh);
+
+      const minX=-3700,maxX=3700,minY=-3400,maxY=2700;
+      const scaleX=(mw-26)/(maxX-minX);
+      const scaleY=(mh-26)/(maxY-minY);
+      const mapPoint=(x,y)=>({
+        x:13+(x-minX)*scaleX,
+        y:13+(y-minY)*scaleY
+      });
+
+      mapCtx.strokeStyle="rgba(255,255,255,.08)";
+      mapCtx.lineWidth=1;
+      for(let i=0;i<=4;i++){
+        const x=13+(mw-26)*i/4;
+        const y=13+(mh-26)*i/4;
+        mapCtx.beginPath();mapCtx.moveTo(x,13);mapCtx.lineTo(x,mh-13);mapCtx.stroke();
+        mapCtx.beginPath();mapCtx.moveTo(13,y);mapCtx.lineTo(mw-13,y);mapCtx.stroke();
+      }
+
+      zones.forEach(zone=>{
+        const point=mapPoint(zone.x,zone.y);
+        const mapRadius=Math.max(11,zone.radius*(mw-26)/(maxX-minX)*1.15);
+        mapCtx.fillStyle=zone.accent+"38";
+        mapCtx.strokeStyle=zone.accent;
+        mapCtx.lineWidth=zone.name===currentZone.name?2:1;
+        mapCtx.beginPath();mapCtx.arc(point.x,point.y,mapRadius,0,Math.PI*2);mapCtx.fill();mapCtx.stroke();
+
+        mapCtx.fillStyle=zone.accent;
+        mapCtx.beginPath();mapCtx.arc(point.x,point.y,zone.name===currentZone.name?5:3.5,0,Math.PI*2);mapCtx.fill();
+
+        if(mw>=170){
+          mapCtx.fillStyle=zone.name===currentZone.name?"#fff6c8":"#eae5da";
+          mapCtx.font=(zone.name===currentZone.name?"900 ":"")+"9px Trebuchet MS";
+          mapCtx.textAlign="center";
+          mapCtx.shadowColor="#000";
+          mapCtx.shadowBlur=4;
+          mapCtx.fillText(zone.name.replace(" Zone",""),point.x,point.y+mapRadius+12);
+          mapCtx.shadowBlur=0;
+        }
+      });
+
+      const playerPoint=mapPoint(player.x,player.y);
+      mapCtx.save();
+      mapCtx.translate(playerPoint.x,playerPoint.y);
+      mapCtx.rotate(player.angle+Math.PI/2);
+      mapCtx.fillStyle="#ffffff";
+      mapCtx.beginPath();mapCtx.moveTo(0,-7);mapCtx.lineTo(5,5);mapCtx.lineTo(-5,5);mapCtx.closePath();mapCtx.fill();
+      mapCtx.restore();
+      mapCtx.fillStyle="#f4c765";
+      mapCtx.font="900 9px Trebuchet MS";
+      mapCtx.textAlign="left";
+      mapCtx.fillText("N",mw-20,11);
+    }
+
+    function draw() {
+      ctx.save();
+      if(shake>0)ctx.translate((Math.random()-.5)*8,(Math.random()-.5)*8);
+      drawGround();drawPortal();drawEnemyProjectiles();drawWorldCharacters();drawCombatEffects();drawProjectiles();
+      const p=worldToScreen(player.x,player.y);
+      drawCharacter(p.x,p.y,player.icon,player.angle,1,false,player.appearance||appearance,player.walkPhase,player.isMoving,attackFlash>0,player.invulnerable);drawAttack();
+      drawScreenVignette();
+      ctx.restore();
+      drawMiniMap();
+    }
+
+    function frame(time) {
+      const dt=Math.min(.033,(time-lastTime)/1000||0);lastTime=time;
+      if(dialogueTimer>0){dialogueTimer-=dt;if(dialogueTimer<=0)document.getElementById("dialogue").style.display="none";}
+      update(dt);draw();
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    function saveUnderworldProgress(){
+      const save={
+        player:{
+          x:player.x,y:player.y,health:player.health,maxHealth:player.maxHealth,power:player.power,
+          speed:player.speed,gold:player.gold,keys:player.keys,exp:player.exp,level:player.level,
+          weapon:player.weapon,weaponRole:player.weaponRole,weaponBonus:player.weaponBonus,
+          weaponCooldown:player.weaponCooldown,potions:player.potions,greaterPotions:player.greaterPotions,
+          className:player.className,name:player.name,icon:player.icon,
+          marketUpgrades:{...player.marketUpgrades}
+        },
+        selected:{...selected},
+        appearance:{...appearance},
+        zoneKeys:{...zoneKeys},
+        currentZone:currentZone.name,
+        zoneState:{nelsonSecretAccess,nelsonRiftClosed,nelsonVisitCount,megaGateKey,hasEscaped,nelsonBlessed,marketSecretPortalClosed:marketSecretPortal.closed===true},
+        nelson:{
+          active:npcs.find(npc=>npc.name==="Nelson").active,
+          trapped:npcs.find(npc=>npc.name==="Nelson").trapped,
+          following:npcs.find(npc=>npc.name==="Nelson").following
+        }
+      };
+      localStorage.setItem("underworldGameSaveV1",JSON.stringify(save));
+    }
+
+    function loadUnderworldProgress(){
+      const raw=localStorage.getItem("underworldGameSaveV1");
+      if(!raw)return false;
+      try{
+        const save=JSON.parse(raw);
+        if(save.player)Object.assign(player,save.player);
+        if(save.selected)selected={...save.selected};
+        if(save.appearance){
+          appearance={...save.appearance};
+          player.appearance={...appearance};
+        }
+        if(save.zoneKeys)Object.assign(zoneKeys,save.zoneKeys);
+        if(save.currentZone)currentZone=zones.find(z=>z.name===save.currentZone)||zones[0];
+        if(currentZone.name==="Market")marketAutoOpened=true;
+        if(save.zoneState){
+          nelsonSecretAccess=!!save.zoneState.nelsonSecretAccess;
+          nelsonRiftClosed=!!save.zoneState.nelsonRiftClosed;
+          nelsonVisitCount=+save.zoneState.nelsonVisitCount||0;
+          megaGateKey=!!save.zoneState.megaGateKey;
+          hasEscaped=!!save.zoneState.hasEscaped;
+          nelsonBlessed=!!save.zoneState.nelsonBlessed;
+          marketSecretPortal.closed=!!save.zoneState.marketSecretPortalClosed;
+          marketSecretPortal.discovered=!marketSecretPortal.closed&&!nelsonRiftClosed&&nelsonVisitCount===0;
+        }
+        if(save.nelson){
+          const nelson=npcs.find(npc=>npc.name==="Nelson");
+          Object.assign(nelson,save.nelson);
+        }
+        return true;
+      }catch(error){
+        console.warn("Could not restore Underworld save.",error);
+        return false;
+      }
+    }
+
+    const introParams=new URLSearchParams(location.search);
+    if(introParams.get("begin")==="1"){
+      document.getElementById("introScreen").style.display="none";
+      if(loadUnderworldProgress()){
+        document.getElementById("menuScreen").style.display="none";
+        document.getElementById("hud").style.display="block";
+        document.getElementById("controls").style.display=innerWidth<700?"flex":"none";
+        gameStarted=true;
+        setBackgroundMusicMode("gameplay");
+        updateHUD();
+        updateZoneUI();
+        showDialogue("Astra","Progress restored. The Underworld remembers you.");
+      }else{
+        document.getElementById("menuScreen").style.display="flex";
+      }
+    }
+
+    document.getElementById("respawnBtn").onclick=()=>{
+      document.getElementById("gameOver").style.display="none";
+      currentZone=zones.find(z=>z.name==="Market");
+      player.x=0;player.y=-2350;
+      showDialogue("Market Keeper","Respawn complete. Potions and weapons are available.");
+      saveUnderworldProgress();
+    };
+    document.getElementById("continueButton").onclick=()=>{
+      document.getElementById("megaGate").style.display="none";
+      player.x=0;
+      player.y=0;
+      player.health=player.maxHealth;
+      updateHUD();
+      showDialogue("Mega Gate","You escaped the Underworld. The gate seals behind you.");
+    };
+  </script>
+</body>
+</html>
