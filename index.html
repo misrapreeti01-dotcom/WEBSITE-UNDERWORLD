@@ -776,10 +776,10 @@
       <span class="introHunterBlade"></span>
     </div>
     <div class="introLetterbox" aria-hidden="true"></div>
-    <div class="introEyebrow">A Realm Beyond the Living</div>
+    <div class="introEyebrow">A Realm Beneath the Living</div>
     <h1 class="introTitle">UNDERWORLD</h1>
-    <p class="introSubtitle">The Overworld has fallen.<br>Now the path descends into the Underworld.</p>
-    <div class="introPromise">The Overworld story is complete</div>
+    <p class="introSubtitle">Ancient seals are breaking beneath the ruins.<br>Gather the keys, find Nelson, and face the BCob.</p>
+    <div class="introPromise">Your descent begins now</div>
     <div class="introStoryLinks" aria-label="Enter the Underworld">
       <a href="ojas2.html?begin=1">Enter Underworld</a>
     </div>
@@ -3036,8 +3036,6 @@
       }else{
         document.getElementById("menuScreen").style.display="flex";
       }
-    }else if(introParams.get("afterOverworld")!=="1"){
-      location.replace("overworld-simulation.html");
     }
 
     document.getElementById("respawnBtn").onclick=()=>{
