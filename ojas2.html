@@ -427,11 +427,20 @@
       animation:dangerPulse .55s infinite alternate;
     }
     @keyframes dangerPulse { to { box-shadow:inset 0 0 210px 70px rgba(210,18,42,.82); } }
+    #dangerVignette.radiation {
+      box-shadow:inset 0 0 150px 45px rgba(74,137,19,.52);
+      animation-name:radiationPulse;
+    }
+    @keyframes radiationPulse { to { box-shadow:inset 0 0 210px 70px rgba(119,208,27,.68); } }
     #dangerLabel {
       position:absolute; left:50%; top:86px; z-index:12; transform:translateX(-50%);
       display:none; border:1px solid #9d2a38; padding:7px 14px;
       background:rgba(45,8,14,.88); color:#ff7c87; font-size:10px;
       font-weight:900; letter-spacing:.22em; text-transform:uppercase;
+    }
+    #dangerLabel.radiation {
+      border-color:#8ddc32;background:rgba(18,39,9,.9);color:#c6ff70;
+      box-shadow:0 0 18px rgba(127,220,43,.22);
     }
     .topHud {
       position:absolute; top:14px; left:14px; right:14px; display:flex; justify-content:space-between; align-items:flex-start;
@@ -473,7 +482,7 @@
       box-shadow:0 5px 18px rgba(0,0,0,.35);
     }
     #marketButton:hover,.shopItem:hover { border-color:var(--gold); filter:brightness(1.15); transform:translateY(-2px); }
-    #marketButton:focus-visible,.shopItem:focus-visible,.shopClose:focus-visible,#potionButton:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
+    #marketButton:focus-visible,.shopItem:focus-visible,.shopClose:focus-visible,.restartButton:focus-visible,#potionButton:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
     .resource { min-width:94px;padding:9px 11px;text-align:right;border-top:1px solid rgba(245,202,103,.32); }
     .resource small { display:block;color:#aaa79f;letter-spacing:.16em;text-transform:uppercase; }
     .resource strong { color:#ffe39a;font-size:18px;text-shadow:0 0 16px rgba(245,202,103,.24); }
@@ -501,6 +510,11 @@
     .zoneCard h3 { margin:4px 0 2px; color:var(--zone-title,#fff); text-transform:uppercase; }
     #gateKeyStatus { display:none;margin-top:8px;color:#ffe09a !important;font-size:9px;font-weight:900;letter-spacing:.14em;text-shadow:0 0 12px rgba(245,202,103,.38); }
     #zoneIcon { display:inline-block; margin-right:6px; color:var(--zone-accent,var(--gold)); }
+    #zoneLore { min-height:34px;margin:7px 0 8px;color:#c8c3b8;font-size:11px;line-height:1.45; }
+    #zoneMeta { display:grid;grid-template-columns:1fr 1fr;gap:6px; }
+    #zoneMeta div { border-top:1px solid rgba(255,255,255,.09);padding-top:6px; }
+    #zoneMeta small { display:block;margin-bottom:2px;font-size:8px; }
+    #zoneMeta strong { display:block;overflow:hidden;color:#f2eee3;font-size:9px;line-height:1.25;text-overflow:ellipsis;white-space:nowrap; }
     .quest {
       position:absolute;overflow:hidden;
       border:1px solid color-mix(in srgb,var(--zone-accent,var(--gold)) 28%,rgba(255,255,255,.1));
@@ -591,6 +605,22 @@
       box-shadow:0 8px 25px rgba(0,0,0,.55); touch-action:none;
     }
     #attackButton:hover,#potionButton:hover,#interactButton:hover { filter:brightness(1.15); }
+    #skillButton {
+      position:fixed;right:104px;bottom:164px;z-index:16;display:none;
+      min-width:82px;height:76px;border:2px solid #9a70df;border-radius:38px;
+      background:rgba(76,38,116,.9);color:white;font-size:10px;font-weight:900;
+      text-transform:uppercase;touch-action:none;box-shadow:0 8px 24px rgba(0,0,0,.48),0 0 18px rgba(154,112,223,.2);
+    }
+    #skillButton:disabled { opacity:.5; }
+    #combatBanner {
+      position:fixed;left:50%;top:24%;z-index:26;transform:translate(-50%,-50%);
+      display:none;padding:12px 22px;border:1px solid rgba(255,230,161,.78);
+      background:linear-gradient(100deg,rgba(23,14,30,.94),rgba(95,29,53,.94));
+      color:#fff1bf;font-weight:900;letter-spacing:.13em;text-align:center;
+      text-shadow:0 0 14px rgba(255,170,92,.8);box-shadow:0 8px 32px #0009;
+      pointer-events:none;animation:bannerPulse .55s ease-out;
+    }
+    @keyframes bannerPulse { from { opacity:0; transform:translate(-50%,-42%) scale(.94); } to { opacity:1; transform:translate(-50%,-50%) scale(1); } }
     #marketOverlay {
       position:fixed; inset:0; z-index:35; display:none; align-items:center; justify-content:center;
       background:rgba(3,4,7,.82); backdrop-filter:blur(7px);
@@ -613,6 +643,8 @@
     #shopGold { color:var(--gold); font-weight:900; }
     .shopClose { border:1px solid #9a5c55;padding:10px 18px;background:linear-gradient(135deg,#402027,#1b1115);color:white;cursor:pointer;transition:filter .2s,transform .2s; }
     .shopClose:hover { filter:brightness(1.2);transform:translateY(-1px); }
+    .restartButton { margin-left:8px;border:1px solid #a34a55;padding:10px 18px;background:linear-gradient(135deg,#63202a,#281116);color:#ffe8e8;font-weight:900;letter-spacing:.04em;cursor:pointer;transition:filter .2s,transform .2s; }
+    .restartButton:hover { filter:brightness(1.2);transform:translateY(-1px); }
     #portalOverlay {
       position:fixed;inset:0;z-index:34;display:none;align-items:center;justify-content:center;
       padding:18px;background:rgba(3,4,7,.82);backdrop-filter:blur(8px);
@@ -627,13 +659,35 @@
     .portalBox p { color:#aaa79f;font-size:13px; }
     #portalChoices { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:18px 0; }
     .portalChoice {
-      min-height:54px;padding:10px;border:1px solid rgba(255,255,255,.15);
+      min-height:112px;padding:10px 12px;border:1px solid rgba(255,255,255,.15);
       background:linear-gradient(145deg,#22222a,#101115);color:#f4efe4;
-      font-weight:900;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+      text-align:left;cursor:pointer;
     }
+    .portalChoice strong { display:block;color:var(--zone-accent,var(--gold));font-size:12px;letter-spacing:.12em;text-transform:uppercase; }
+    .portalChoice em { display:block;margin:4px 0 7px;color:#aaa79f;font-size:9px;font-style:normal;letter-spacing:.12em;text-transform:uppercase; }
+    .portalChoice span { display:block;color:#d1cdc4;font-size:10px;font-weight:400;line-height:1.45; }
     .portalChoice:hover:not(:disabled) { border-color:var(--zone-accent,var(--gold));filter:brightness(1.2); }
     .portalChoice:disabled { color:#777;cursor:not-allowed;opacity:.65; }
     #closePortal { border:1px solid #8a5a52;padding:10px 18px;background:#28171b;color:white;cursor:pointer; }
+    #loreOverlay {
+      position:fixed;inset:0;z-index:38;display:none;align-items:center;justify-content:center;
+      padding:20px;background:rgba(3,5,8,.88);backdrop-filter:blur(8px);
+    }
+    .loreCard {
+      width:min(660px,100%);max-height:82vh;overflow:auto;padding:clamp(22px,5vw,42px);
+      border:1px solid rgba(176,216,190,.48);
+      background:linear-gradient(145deg,rgba(20,29,25,.98),rgba(8,12,15,.98));
+      box-shadow:0 0 70px rgba(67,145,98,.18),0 24px 80px rgba(0,0,0,.65);
+      color:#e7eee8;
+    }
+    .loreCard small { color:#b5d6bd;letter-spacing:.24em;text-transform:uppercase; }
+    .loreCard h2 { margin:12px 0 20px;color:#f2e7c5;font-size:clamp(26px,5vw,42px); }
+    .loreCard p { margin:0;color:#d4ded7;font-size:clamp(15px,2.4vw,18px);line-height:1.85;white-space:pre-line; }
+    .loreCard .loreProgress { display:block;margin-top:22px;color:#9bb9a3;font-size:11px;letter-spacing:.12em; }
+    .loreCard button {
+      margin-top:22px;border:1px solid rgba(196,224,202,.55);padding:11px 20px;
+      background:rgba(78,116,88,.26);color:#f2f4e9;font-weight:800;cursor:pointer;
+    }
     #megaGate {
       position:fixed; inset:0; z-index:36; display:none; align-items:center; justify-content:center;
       overflow:hidden;
@@ -714,6 +768,77 @@
     }
     .megaGateBox button:hover { filter:brightness(1.16); transform:translateY(-2px); }
 
+    #kingdomEnding {
+      position:fixed;inset:0;z-index:45;display:none;align-items:center;justify-content:center;
+      overflow:hidden;text-align:center;color:#fff4d8;
+      background:
+        radial-gradient(ellipse at 50% 35%,rgba(255,244,190,.9),rgba(255,213,122,.3) 18%,transparent 42%),
+        linear-gradient(180deg,#82c9dc 0%,#d4e4cb 50%,#f2c878 72%,#42685a 100%);
+    }
+    #kingdomEnding::before,#kingdomEnding::after {
+      content:"";position:absolute;left:-8%;right:-8%;bottom:0;pointer-events:none;
+    }
+    #kingdomEnding::before {
+      height:42%;background:linear-gradient(180deg,#6e9a70,#315b4c);
+      clip-path:polygon(0 42%,12% 28%,24% 43%,38% 18%,52% 39%,68% 13%,82% 37%,100% 20%,100% 100%,0 100%);
+    }
+    #kingdomEnding::after {
+      height:27%;background:linear-gradient(180deg,#427456,#173d36);
+      clip-path:polygon(0 35%,18% 20%,35% 40%,53% 18%,70% 38%,88% 16%,100% 32%,100% 100%,0 100%);
+    }
+    .kingdomScene { position:absolute;inset:0;pointer-events:none; }
+    .kingdomSun {
+      position:absolute;left:50%;top:23%;width:clamp(100px,18vw,220px);aspect-ratio:1;
+      transform:translate(-50%,-50%);border-radius:50%;
+      background:radial-gradient(circle,#fffbe0 0 42%,rgba(255,235,174,.85) 58%,rgba(255,235,174,0) 74%);
+      filter:drop-shadow(0 0 50px rgba(255,244,193,.8));
+    }
+    .kingdomCastle {
+      position:absolute;left:50%;bottom:24%;width:clamp(230px,42vw,520px);height:clamp(125px,22vh,210px);
+      transform:translateX(-50%);border:3px solid #9a6d4e;border-bottom:0;
+      background:linear-gradient(90deg,#c59b6d,#f0d7a4 48%,#c59b6d);
+      box-shadow:0 12px 40px rgba(29,55,43,.35);
+    }
+    .kingdomCastle::before,.kingdomCastle::after {
+      content:"";position:absolute;bottom:0;width:24%;height:145%;
+      border:3px solid #9a6d4e;border-bottom:0;background:linear-gradient(90deg,#b8895d,#e6c594);
+      clip-path:polygon(0 18%,18% 18%,18% 0,38% 0,38% 18%,62% 18%,62% 0,82% 0,82% 18%,100% 18%,100% 100%,0 100%);
+    }
+    .kingdomCastle::before { left:-16%; }
+    .kingdomCastle::after { right:-16%; }
+    .castleDoor {
+      position:absolute;left:50%;bottom:0;width:15%;height:42%;transform:translateX(-50%);
+      border:3px solid #81583f;border-bottom:0;border-radius:50% 50% 0 0;background:#594333;
+    }
+    .kingdomCopy {
+      position:relative;z-index:2;width:min(760px,calc(100% - 32px));margin-top:-12vh;
+      max-height:calc(100vh - 32px);overflow-y:auto;padding:8px 10px 24px;
+      text-shadow:0 2px 18px rgba(31,56,47,.65);
+      animation:gateReveal 1.1s cubic-bezier(.16,1,.3,1) both;
+    }
+    .kingdomCopy small { color:#fff0bd;font-size:10px;font-weight:900;letter-spacing:.42em;text-transform:uppercase; }
+    .kingdomCopy h2 { margin:12px 0;color:#fff8df;font-size:clamp(30px,7vw,72px);line-height:1;letter-spacing:.08em;text-transform:uppercase; }
+    .kingdomCopy p { max-width:620px;margin:10px auto;color:#fff8e9;font-size:clamp(14px,2vw,19px);line-height:1.6; }
+    .endingCast { display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin:20px auto; }
+    .endingCast span {
+      min-width:118px;padding:8px 12px;border:1px solid rgba(255,244,216,.55);border-radius:3px;
+      background:rgba(35,68,53,.28);color:#fff8e9;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;
+    }
+    .endingContinue,.playAgainButton {
+      margin-top:10px;border:1px solid #fff3c1;padding:13px 28px;
+      background:linear-gradient(135deg,#9a633d,#41664b);color:white;
+      font-weight:900;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;
+      box-shadow:0 10px 28px rgba(22,51,39,.32);
+    }
+    .endingContinue:hover,.playAgainButton:hover { filter:brightness(1.14);transform:translateY(-2px); }
+    .kingdomFinale { display:none; }
+    .kingdomFinale h2 { margin:0;color:#fff8df;font-size:clamp(48px,12vw,112px);letter-spacing:.16em;text-shadow:0 3px 24px rgba(31,56,47,.65); }
+    .kingdomFinale p { color:#fff8e9;font-size:clamp(15px,2vw,21px);line-height:1.6; }
+    .playAgainButton { background:linear-gradient(135deg,#b8894b,#42664c); }
+    @media (prefers-reduced-motion:reduce) {
+      #kingdomEnding *,#kingdomEnding::before,#kingdomEnding::after { animation:none !important; }
+    }
+
     #gameOver {
       position:fixed; inset:0; z-index:40; display:none; align-items:center; justify-content:center;
       background:rgba(3,4,6,.88);
@@ -730,31 +855,71 @@
       .appearancePanel { grid-template-columns:120px 1fr; }
       .characterPreview { height:170px; }
       .appearanceControls { grid-template-columns:1fr; }
-      .playerPanel,.zoneCard { width:180px; }
-      .playerPanel { padding:9px 10px; }
-      .smallStats { gap:8px; font-size:10px; }
-      .loadoutRow { font-size:9px; }
-      .zoneCard { bottom:252px; width:180px; }
-      .quest { bottom:160px; width:calc(100% - 28px); }
-      #potionButton { bottom:245px; }
-      .resource { min-width:70px; }
-      #miniMap { width:140px; height:140px; top:74px; }
-      #controls { display:flex; }
-      #attackButton { display:block; }
-      #potionButton { display:block; }
-      #interactButton { display:block; }
-      #npcDialogue { grid-template-columns:78px 1fr; bottom:10px; }
-      .npcPortrait { min-height:180px; font-size:48px; }
+      .topHud { top:calc(8px + env(safe-area-inset-top));left:8px;right:8px;gap:6px; }
+      .playerPanel { flex:1;min-width:0;width:auto;padding:8px 9px; }
+      .playerPanel .loadoutRow,.playerPanel>small { display:none; }
+      .smallStats { gap:7px;margin-top:5px;font-size:9px; }
+      .healthTrack { height:9px;margin-top:5px; }
+      .rightHud { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;width:132px; }
+      .rightHud .resource { min-width:0;padding:5px 6px;text-align:center; }
+      .rightHud .resource small { font-size:8px; }
+      .rightHud .resource strong { font-size:14px; }
+      #marketButton { grid-column:1 / -1;min-width:0;min-height:32px;padding:5px;font-size:9px; }
+      #miniMap { top:calc(112px + env(safe-area-inset-top));right:8px;width:88px;height:88px;padding:3px; }
+      .zoneCard { left:8px;top:calc(208px + env(safe-area-inset-top));bottom:auto;width:calc(50% - 12px);padding:7px 9px; }
+      #zoneLore,#zoneMeta { display:none; }
+      #keyDots { margin-top:5px; }
+      .quest { left:auto;right:8px;top:calc(208px + env(safe-area-inset-top));bottom:auto;width:calc(50% - 12px);min-height:66px;padding:8px 9px; }
+      .quest strong { font-size:8px;letter-spacing:.1em; }
+      #objective { display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;margin-top:4px;font-size:10px;line-height:1.35; }
+      #dangerLabel { top:calc(286px + env(safe-area-inset-top));max-width:calc(100% - 24px);font-size:8px;letter-spacing:.12em;text-align:center; }
+      #controls {
+        left:max(10px,env(safe-area-inset-left));bottom:calc(14px + env(safe-area-inset-bottom));
+        transform:none;display:grid;grid-template-columns:repeat(3,50px);grid-template-rows:repeat(2,50px);gap:4px;
+      }
+      .key { width:50px;height:50px;min-width:50px;border-radius:14px;font-size:20px;font-weight:900; }
+      .key[data-key="w"] { grid-column:2;grid-row:1; }
+      .key[data-key="a"] { grid-column:1;grid-row:2; }
+      .key[data-key="s"] { grid-column:2;grid-row:2; }
+      .key[data-key="d"] { grid-column:3;grid-row:2; }
+      #attackButton,#potionButton,#skillButton,#interactButton {
+        display:block;right:calc(12px + env(safe-area-inset-right));width:72px;min-width:72px;
+        height:58px;border-radius:16px;padding:4px;font-size:9px;letter-spacing:.04em;
+        touch-action:none;user-select:none;-webkit-tap-highlight-color:transparent;
+      }
+      #attackButton { right:calc(12px + env(safe-area-inset-right));bottom:calc(18px + env(safe-area-inset-bottom));width:76px;height:76px;border-radius:50%;font-size:11px; }
+      #interactButton { right:calc(96px + env(safe-area-inset-right));bottom:calc(24px + env(safe-area-inset-bottom)); }
+      #potionButton { right:calc(12px + env(safe-area-inset-right));bottom:calc(102px + env(safe-area-inset-bottom)); }
+      #skillButton { right:calc(96px + env(safe-area-inset-right));bottom:calc(102px + env(safe-area-inset-bottom)); }
+      #npcPrompt { bottom:calc(176px + env(safe-area-inset-bottom));width:calc(100% - 24px);max-width:360px;text-align:center;font-size:9px; }
+      #dialogue { bottom:calc(236px + env(safe-area-inset-bottom));width:calc(100% - 20px);max-height:18vh;overflow:hidden;padding:9px 11px;font-size:11px; }
+      #npcDialogue {
+        left:10px;right:10px;top:50%;bottom:auto;transform:translateY(-50%);width:auto;
+        max-height:72vh;overflow:auto;grid-template-columns:58px minmax(0,1fr);
+      }
+      .npcPortrait { min-height:84px;font-size:38px; }
+      .npcConversation { padding:14px 12px; }
+      #npcText { font-size:13px; }
+      .npcChoice { min-height:44px;padding:9px;font-size:9px; }
       .shopGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-      .shopBox { padding:18px 14px; }
+      .shopBox { max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow-y:auto;padding:18px 14px; }
       .shopItem { min-height:112px; }
-      .rightHud { gap:5px; }
-      .rightHud .resource { min-width:52px; padding:7px 5px; }
-      #marketButton { min-width:58px; padding:7px 5px; font-size:9px; }
       .megaGateBox h2 { font-size:clamp(38px,15vw,64px); }
       .megaGateKicker { font-size:8px; letter-spacing:.24em; }
       .gateStats { gap:4px; }
       .gateStat { min-width:82px; padding:8px 5px; }
+      #loreOverlay { padding:10px; }
+      .loreCard { max-height:90dvh;padding:22px 18px; }
+      .loreCard p { font-size:15px;line-height:1.65; }
+    }
+    @media (max-width:380px) {
+      .rightHud { width:116px; }
+      #miniMap { width:78px;height:78px; }
+      .zoneCard,.quest { top:calc(198px + env(safe-area-inset-top)); }
+      #controls { grid-template-columns:repeat(3,46px);grid-template-rows:repeat(2,46px); }
+      .key { width:46px;height:46px;min-width:46px; }
+      #attackButton,#potionButton,#skillButton,#interactButton { width:64px;min-width:64px; }
+      #interactButton,#skillButton { right:calc(84px + env(safe-area-inset-right)); }
     }
   </style>
 </head>
@@ -840,6 +1005,8 @@
         <div class="healthTrack"><div id="healthFill"></div></div>
         <div class="smallStats"><span>HP <b id="healthText">100</b></span><span>POW <b id="powerText">28</b></span><span>EXP <b id="expText">0</b></span></div>
         <div class="loadoutRow"><span>WEAPON <b id="weaponText">Hunter's Edge</b></span><span>POTIONS <b id="potionCount">0</b></span></div>
+        <div class="loadoutRow"><span>DODGE <b id="dodgeStatus">READY</b></span><span>SKILL <b id="skillStatus">READY</b></span></div>
+        <small style="color:#aaa79f">Space · dodge &nbsp; Shift/right-click · class skill</small>
       </div>
       <div class="rightHud">
         <div class="panel resource"><small>GOLD</small><strong id="goldText">500</strong></div>
@@ -854,6 +1021,11 @@
     <div class="panel zoneCard">
       <small id="zoneKind">Safe Territory</small>
       <h3><span id="zoneIcon">♜</span><span id="zoneName">Safe Zone</span></h3>
+      <div id="zoneLore">King Milan watches over the last secure refuge.</div>
+      <div id="zoneMeta">
+        <div><small>Threat</small><strong id="zoneThreat">None</strong></div>
+        <div><small>Guardian</small><strong id="zoneBoss">King Milan</strong></div>
+      </div>
       <div id="keyDots"><i></i><i></i><i></i><i></i><i></i></div>
       <small id="gateKeyStatus">✦ MEGA GATE KEY</small>
     </div>
@@ -877,11 +1049,13 @@
   </div>
 
   <div id="controls">
-  <button class="key" data-key="w">W</button><button class="key" data-key="a">A</button><button class="key" data-key="s">S</button><button class="key" data-key="d">D</button>
+  <button class="key" data-key="w" aria-label="Move up">↑</button><button class="key" data-key="a" aria-label="Move left">←</button><button class="key" data-key="s" aria-label="Move down">↓</button><button class="key" data-key="d" aria-label="Move right">→</button>
   </div>
   <button id="attackButton">Attack</button>
+  <button id="skillButton">Skill</button>
   <button id="potionButton" aria-label="Use a healing potion">Potion · Q ×<span id="mobilePotionCount">0</span></button>
-  <button id="interactButton">Talk</button>
+  <button id="interactButton">Interact</button>
+  <div id="combatBanner" role="status" aria-live="polite"></div>
 
   <div id="marketOverlay">
     <div class="shopBox">
@@ -897,6 +1071,7 @@
         <button class="shopItem materialItem" data-cost="500" data-effect="armorUpgrade"><span class="shopIcon">🛡️</span><strong>Warden's Plate</strong><small>Reinforce your armor<br>Gain 40 maximum health<br>500 gold · one per hunter</small></button>
       </div>
       <button class="shopClose" id="closeMarket">Back to the world</button>
+      <button class="restartButton" id="restartGameButton">Restart Game</button>
     </div>
   </div>
 
@@ -912,15 +1087,55 @@
 
   <div id="megaGate">
     <div class="megaGateBox">
-      <small class="megaGateKicker">THE MEGA GATE KEY IS CLAIMED</small>
-      <h2>MEGA GATE</h2>
-      <p><strong id="gateHunterName">ASTRA</strong> escaped the Underworld with Nelson.</p>
+      <small class="megaGateKicker">THE MEGA GATE IS OPEN</small>
+      <h2>YOU SAVED<br>THE UNDERWORLD</h2>
+      <p><strong id="gateHunterName">ASTRA</strong> and Nelson escaped as King Milan held the last shadows back. Milan had broken the champion horde in H3ll and kept the arena clear while Astra faced the BCob.</p>
+      <p>The gate opens onto a new dawn. Together, the three survivors can begin rebuilding the realms.</p>
       <div class="gateStats">
         <div class="gateStat"><small>Level</small><strong id="gateLevel">1</strong></div>
         <div class="gateStat"><small>Power</small><strong id="gatePower">28</strong></div>
         <div class="gateStat"><small>Keys</small><strong>20 / 20</strong></div>
       </div>
       <button id="continueButton">Continue Exploring</button>
+    </div>
+  </div>
+
+  <div id="loreOverlay" role="dialog" aria-modal="true" aria-labelledby="loreTitle">
+    <article class="loreCard">
+      <small id="loreKicker">RECOVERED FRAGMENT</small>
+      <h2 id="loreTitle">A Broken Record</h2>
+      <p id="loreText"></p>
+      <small class="loreProgress" id="loreProgress"></small>
+      <button id="closeLoreNote" type="button">Fold the note</button>
+    </article>
+  </div>
+
+  <div id="kingdomEnding" role="dialog" aria-modal="true" aria-labelledby="endingTitle">
+    <div class="kingdomScene" aria-hidden="true">
+      <div class="kingdomSun"></div>
+      <div class="kingdomCastle"><div class="castleDoor"></div></div>
+    </div>
+    <div class="kingdomCopy">
+      <div id="kingdomStory">
+        <small>AFTER THE MEGA GATE</small>
+        <h2 id="endingTitle">A Peaceful Kingdom</h2>
+        <p>The gate opens onto a sunlit kingdom. The last of the Underworld's shadows fade, the roads are safe again, and the survivors return home.</p>
+        <p>King Milan takes his rightful place as ruler—not as a distant king, but as a leader who helped fight for his people. He welcomes Nelson home, and together they begin rebuilding the broken realms.</p>
+        <p>Astra is honored as the Light Hunter who gathered the twenty keys, stood against the BCob, and brought Nelson home. Nelson helps Milan restore the ancient wards so darkness can never imprison the kingdom again.</p>
+        <p>At last, the three friends watch the sunrise over a peaceful land. The kingdom is free, its people are safe, and a new age begins.</p>
+        <div class="endingCast" aria-label="The survivors">
+          <span>King Milan · Ruler</span>
+          <span>Astra · Light Hunter</span>
+          <span>Nelson · Warden</span>
+        </div>
+        <button id="endingContinueButton" class="endingContinue">Continue</button>
+      </div>
+      <div id="kingdomFinale" class="kingdomFinale" aria-live="polite">
+        <small>THE UNDERWORLD IS SAVED</small>
+        <h2>THE END</h2>
+        <p>King Milan's peaceful kingdom will endure.</p>
+        <button id="playAgainButton" class="playAgainButton">Play Again</button>
+      </div>
     </div>
   </div>
 
@@ -938,39 +1153,87 @@
     let w = 0, h = 0, selected = {name:"Astra", icon:"🧙", power:28, speed:5};
     let appearance={armor:"#263a48",accent:"#69b1b9",outfit:"Hunter",hunterName:"ASTRA"};
     let keysPressed = {}, mouse = {x:0,y:0,down:false};
-    let gameStarted = false, lastTime = 0, shake = 0, attackFlash = 0, dialogueTimer = 0;
+    let gameStarted = false, lastTime = 0, shake = 0, shakePower=0, attackFlash = 0, dialogueTimer = 0;
 
-    function resize() { w = canvas.width = innerWidth * devicePixelRatio; h = canvas.height = innerHeight * devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); w=innerWidth; h=innerHeight; }
+    function resize() {
+      w=canvas.width=innerWidth*devicePixelRatio;h=canvas.height=innerHeight*devicePixelRatio;
+      ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);w=innerWidth;h=innerHeight;
+      const controls=document.getElementById("controls");
+      if(controls)controls.style.display=gameStarted&&innerWidth<700?"grid":"none";
+    }
     addEventListener("resize", resize); resize();
 
-    const player = {x:0,y:0,radius:18,angle:0,health:100,maxHealth:100,power:28,speed:5,gold:500,keys:0,exp:0,level:1,icon:"🧙",name:"Astra",className:"Astra",invulnerable:0,weapon:"Hunter's Edge",weaponRole:"Arcane bolt",weaponBonus:0,weaponCooldown:.34,attackCooldown:0,potions:0,greaterPotions:0,marketUpgrades:{froststeel:false,wardenPlate:false},walkPhase:0,isMoving:false};
+    const player = {x:0,y:0,radius:18,angle:0,health:100,maxHealth:100,power:28,speed:5,gold:500,keys:0,exp:0,level:1,icon:"🧙",name:"Astra",className:"Astra",invulnerable:0,dodgeTime:0,dodgeCooldown:0,dodgeX:0,dodgeY:0,skillCooldown:0,nextCritical:false,weapon:"Hunter's Edge",weaponRole:"Arcane bolt",weaponBonus:0,weaponCooldown:.34,attackCooldown:0,potions:0,greaterPotions:0,marketUpgrades:{froststeel:false,wardenPlate:false},walkPhase:0,isMoving:false};
     const zones = [
-      {name:"Safe Zone", kind:"Safe Territory", icon:"♜", color:"#3b3a5c", accent:"#a8b4ef", x:0, y:0, radius:470},
-      {name:"Frossbite", kind:"Frozen Wasteland", icon:"❄", color:"#346d83", accent:"#8ce9ff", x:-2100, y:-1450, radius:980},
-      {name:"Fireball", kind:"Volcanic Ruins", icon:"♨", color:"#75252d", accent:"#ff824f", x:2100, y:-1450, radius:980},
-      {name:"Nuclear Zone", kind:"Radioactive Ruins", icon:"☢", color:"#586b2f", accent:"#c5f05b", x:-2100, y:1450, radius:980},
-      {name:"Static Zone", kind:"The Final Zone", icon:"◉", color:"#433350", accent:"#db8cff", x:2100, y:1450, radius:980},
-      {name:"H3ll", kind:"Survivor Territory", icon:"♨", color:"#743128", accent:"#ff7951", x:-2800, y:0, radius:700},
-      {name:"Training Zone", kind:"Practice Grounds", icon:"✦", color:"#285750", accent:"#74e3c3", x:2800, y:0, radius:700},
-      {name:"Market", kind:"Resupply Hub", icon:"✥", color:"#5a4c31", accent:"#f2c85d", x:0, y:-2350, radius:390}
+      {name:"Safe Zone", kind:"Safe Territory", icon:"♜", color:"#3b3a5c", accent:"#a8b4ef", x:0, y:0, radius:470, lore:"The last warded refuge beneath the ruins.", threat:"None", boss:"King Milan"},
+      {name:"Frossbite", kind:"Frozen Wasteland", icon:"❄", color:"#346d83", accent:"#8ce9ff", x:-2100, y:-1450, radius:980, lore:"An eternal glacier swallowing the Northern Peaks.", threat:"Cold / Frost", boss:"Glacier Stalker"},
+      {name:"Fireball", kind:"Volcanic Ruins", icon:"♨", color:"#75252d", accent:"#ff824f", x:2100, y:-1450, radius:980, lore:"A broken sunforge built into a raging caldera.", threat:"Fire / Ember", boss:"Jam Jam"},
+      {name:"Nuclear Zone", kind:"Radioactive Ruins", icon:"☢", color:"#586b2f", accent:"#c5f05b", x:-2100, y:1450, radius:980, lore:"A poisoned reactor throne guarded by the betrayer.", threat:"Radiation", boss:"Milan the Villain"},
+      {name:"Static Zone", kind:"The Final Zone", icon:"◉", color:"#433350", accent:"#db8cff", x:2100, y:1450, radius:980, lore:"Reality fractures around a silent Sky-Spire Relay.", threat:"Void / Rift", boss:"Void Eye"},
+      {name:"H3ll", kind:"Survivor Territory", icon:"♨", color:"#743128", accent:"#ff7951", x:-2800, y:0, radius:700, lore:"Nelson's prison and the sealed road to the Mega Gate.", threat:"Extreme", boss:"The BCob"},
+      {name:"Training Zone", kind:"Practice Grounds", icon:"✦", color:"#285750", accent:"#74e3c3", x:2800, y:0, radius:700, lore:"A quiet proving ground for attacks and footwork.", threat:"Low", boss:"Training Dummy"},
+      {name:"Market", kind:"Resupply Hub", icon:"✥", color:"#5a4c31", accent:"#f2c85d", x:0, y:-2350, radius:390, lore:"The Market Keeper trades rare supplies for gold.", threat:"None", boss:"Market Keeper"}
     ];
     const zoneKeys = {Frossbite:0,Fireball:0,"Nuclear Zone":0,"Static Zone":0};
     let currentZone = zones[0];
     let marketAutoOpened=false;
     const marketSecretPortal={x:-180,y:-2550,discovered:false};
-    const hellReturnPortal={x:-2740,y:-220};
+    const hellReturnPortal={x:-2900,y:-520};
+    const hiddenRelic={x:-2180,y:-1740,discovered:false};
+    const trainingKey={x:3090,y:-360};
+    const loreFragments=[
+      {id:"frost-ward",zone:"Frossbite",x:-2640,y:-1170,title:"The Frost-Sealed Ward",text:"A frozen note reads: 'The four keys hold one seal. Never speak the name below.'"},
+      {id:"ember-cylinder",zone:"Fireball",x:2910,y:-1150,title:"The Ash-Cylinder",text:"A voice promised Milan a crown in his brother's voice. Milan turned the reactor key, but says he cannot remember doing it."},
+      {id:"reactor-log",zone:"Nuclear Zone",x:-1480,y:2020,title:"The Emerald Reactor Log",text:"The log names Milan as the one who opened the seal. A second voice can be heard behind his."},
+      {id:"sky-spire",zone:"Static Zone",x:2780,y:1870,title:"The Sky-Spire's Last Signal",text:"The Overworld signal vanished, then returned from below. A child's voice says Astra's name."}
+    ];
+    const discoveredLoreFragments=new Set();
+    let trainingKeyFound=false,trainingKeyUsed=false,jamJamAlly=false,fireballSanctuary=false,jamJamAssistTimer=0;
     let nelsonSecretAccess=false;
     let nelsonRiftClosed=false;
     let nelsonVisitCount=0;
     let hellUnsealed=false;
+    let weaknessDiscovered=false;
+    let nelsonBlessingPending=false;
+    let nelsonBlessingTime=0;
+    let lastZoneName="Safe Zone";
+    let globalMonsterSkillAt=-1;
+    let hellFinalePhase=0;
+    let finaleArmySpawned=false;
+    let kingMilanArrived=false;
+    let kingMilanStrike=0;
+    let finaleKills=0;
+    let finaleArmyTotal=0;
+    let finaleBossStarted=false;
+    let nelsonChronoTimer=0;
+    let nelsonSanctuaryTimer=0;
+    let sanctuaryField=null;
+    let activeSkillEffect=null;
+    let barrierFlash=0;
+    const damageNumbers=[];
+    const MAP_UNIT=40;
+    const MONSTER_DETECTION=16*MAP_UNIT;
+    const MONSTER_LEASH=35*MAP_UNIT;
 
     const enemies = [];
+    function monsterEnergy(index){
+      const hue=(index*137.508)%360;
+      const channel=n=>{
+        const k=(n+hue/30)%12;
+        const value=.72-.36*Math.max(-1,Math.min(k-3,9-k,1));
+        return Math.round(value*255).toString(16).padStart(2,"0");
+      };
+      return "#"+channel(0)+channel(8)+channel(4);
+    }
     function addEnemy(name,icon,x,y,power,health,zone,speed=0.8,options={}) {
       enemies.push({
         name,icon,x,y,spawnX:x,spawnY:y,power,health,maxHealth:health,
         radius:options.radius||22,zone,angle:0,hit:0,dead:false,respawn:0,
-        speed,attackCooldown:0,contactCooldown:0,isBoss:!!options.isBoss,isFinalBoss:!!options.isFinalBoss,
+        energyColor:options.energyColor||monsterEnergy(enemies.length),isAlly:!!options.isAlly,
+        speed,attackCooldown:0,contactCooldown:0,isBoss:!!options.isBoss,isFinalBoss:!!options.isFinalBoss,isFinaleEcho:!!options.isFinaleEcho,
         requiresHell:!!options.requiresHell,keyRecovered:false,
+        skillKind:options.skillKind||"",skillCooldown:2+Math.random()*2,aggro:false,stunned:0,windup:0,skillState:"",
+        shieldTime:0,patrolPhase:Math.random()*Math.PI*2,
         keyBearer:options.keyBearer!==undefined?options.keyBearer:(zoneKeys[zone]!==undefined&&!options.isBoss&&!options.isFinalBoss)
       });
     }
@@ -1006,20 +1269,40 @@
     addEnemy("Cinder Warden","🗿",-2570,180,48,540,"H3ll",0.82,{requiresHell:true,keyBearer:false});
 
     addEnemy("Training Dummy","🎯",2800,150,5,50,"Training Zone",0);
+    addEnemy("Shadow Stalker","🐺",-1840,-1770,26,260,"Frossbite",1.9,{skillKind:"shadow"});
+    addEnemy("Bone Brute","🗿",2450,-1570,38,520,"Fireball",.7,{skillKind:"brute"});
+    addEnemy("Void Acolyte","👁",1900,1770,32,390,"Static Zone",.85,{skillKind:"acolyte"});
+    addEnemy("Iron Dreadguard","👹",-2520,1320,34,470,"Nuclear Zone",.95,{skillKind:"dreadguard"});
 
     const projectiles=[];
     const visualEffects=[];
     const megaGate={x:210,y:130};
+    const gateChit={x:megaGate.x+58,y:megaGate.y+32};
 
     const npcs = [
       {name:"King Milan",role:"Protector of the Safe Zone",icon:"♚",x:-180,y:-40,spawnX:-180,spawnY:-40,zone:"Safe Zone",text:"The 20 keys will open the Mega Gate. Explore every danger zone.",color:"#d9c66e",phase:.2,patrolRadius:110,speed:.34},
-      {name:"Nelson",role:"Trapped Survivor",icon:"🧔",x:-2600,y:-220,spawnX:-2600,spawnY:-220,zone:"H3ll",text:"The BCob has trapped me here. Its eye fires three bolts in a fan—keep moving sideways, then strike while it recovers.",color:"#ef8a55",phase:1.8,patrolRadius:85,speed:.48,active:false,trapped:true,following:false},
+      {name:"Nelson",role:"Trapped Survivor",icon:"🧔",x:-3180,y:-260,spawnX:-3180,spawnY:-260,zone:"H3ll",text:"The BCob has trapped me here. Its eye fires three bolts in a fan—keep moving sideways, then strike while it recovers.",color:"#ef8a55",phase:1.8,patrolRadius:85,speed:.48,active:false,trapped:true,following:false},
       {name:"Market Keeper",role:"Merchant of the Underworld",icon:"🧙‍♂️",x:0,y:-2350,spawnX:0,spawnY:-2350,zone:"Market",text:"I trade potions and weapons for gold.",color:"#f4c765",phase:3.1,patrolRadius:65,speed:.28}
     ];
     let nelsonBlessed=false,megaGateKey=false,hasEscaped=false,hellLockedWarning=false;
     const enemyProjectiles=[];
 
     let musicContext=null,musicMaster=null,musicTrack=null,musicEnabled=false,musicMode="intro";
+    function zoneTheme(chords,melody,voices,voiceLevels,options={}){
+      return {
+        chords,melody,voices,voiceLevels,
+        chordEvery:options.chordEvery||3200,
+        noteEvery:options.noteEvery||850,
+        noteWave:options.noteWave||"triangle",
+        noteGain:options.noteGain||.026,
+        noteAttack:options.noteAttack||.04,
+        noteSustain:options.noteSustain||.16,
+        noteRelease:options.noteRelease||.32,
+        pulseEvery:options.pulseEvery||1500,
+        pulseGain:options.pulseGain||.018,
+        pulseDuration:options.pulseDuration||.2
+      };
+    }
     const musicThemes={
       intro:{
         chords:[[55,82.41,110,164.81],[49,73.42,98,146.83],[43.65,65.41,87.31,130.81],[55,73.42,98,146.83]],
@@ -1035,12 +1318,21 @@
         chordEvery:2300,noteEvery:640,noteWave:"triangle",noteGain:.045,
         noteAttack:.025,noteSustain:.1,noteRelease:.25,
         pulseEvery:640,pulseGain:.035,pulseDuration:.24
-      }
+      },
+      "Safe Zone":zoneTheme([[65.41,98,130.81],[73.42,110,146.83],[55,82.41,110],[61.74,92.5,123.47]],[392,440,523.25,440,349.23,392,493.88,440],["sine","triangle","sine"],[.024,.018,.01],{chordEvery:4200,noteEvery:1450,noteGain:.022}),
+      Frossbite:zoneTheme([[55,82.41,123.47],[49,73.42,110],[65.41,98,146.83],[43.65,65.41,98]],[261.63,311.13,392,349.23,233.08,293.66,349.23,311.13],["triangle","sine","triangle"],[.026,.018,.01],{chordEvery:3900,noteEvery:1100,noteWave:"sine",pulseEvery:2200}),
+      Fireball:zoneTheme([[73.42,110,164.81],[82.41,123.47,185],[65.41,98,146.83],[87.31,130.81,196]],[293.66,392,440,523.25,349.23,466.16,392,587.33],["sawtooth","triangle","sine"],[.022,.018,.008],{chordEvery:2100,noteEvery:520,noteWave:"sawtooth",noteGain:.018,pulseEvery:520,pulseGain:.026}),
+      "Nuclear Zone":zoneTheme([[46.25,69.3,103.83],[51.91,77.78,116.54],[43.65,65.41,98],[55,82.41,123.47]],[207.65,233.08,311.13,261.63,196,277.18,233.08,349.23],["sawtooth","sine","triangle"],[.02,.016,.009],{chordEvery:2800,noteEvery:760,noteWave:"sine",pulseEvery:950,pulseGain:.02}),
+      "Static Zone":zoneTheme([[58.27,87.31,138.59],[61.74,92.5,146.83],[51.91,77.78,123.47],[69.3,103.83,155.56]],[466.16,392,523.25,349.23,493.88,369.99,554.37,415.3],["triangle","sawtooth","sine"],[.018,.016,.01],{chordEvery:1700,noteEvery:430,noteWave:"square",noteGain:.014,pulseEvery:430,pulseGain:.024,pulseDuration:.12}),
+      H3ll:zoneTheme([[41.2,61.74,82.41],[38.89,58.27,77.78],[46.25,69.3,92.5],[36.71,55,73.42]],[164.81,196,220,174.61,146.83,185,207.65,164.81],["sawtooth","triangle","sine"],[.026,.014,.008],{chordEvery:4900,noteEvery:980,noteWave:"triangle",noteGain:.02,pulseEvery:1050,pulseGain:.026,pulseDuration:.28}),
+      "Training Zone":zoneTheme([[73.42,110,164.81],[82.41,123.47,185],[65.41,98,146.83],[87.31,130.81,196]],[523.25,659.25,587.33,783.99,493.88,587.33,698.46,880],["sine","triangle","sine"],[.02,.014,.008],{chordEvery:5200,noteEvery:1200,noteWave:"sine",noteGain:.018,pulseEvery:2600}),
+      Market:zoneTheme([[73.42,110,146.83],[65.41,98,130.81],[82.41,123.47,164.81],[55,82.41,110]],[392,493.88,440,349.23,523.25,440,329.63,392],["triangle","sine","triangle"],[.022,.015,.008],{chordEvery:3600,noteEvery:900,noteWave:"triangle",noteGain:.02,pulseEvery:1800})
     };
 
     function updateMusicButton() {
       const button=document.getElementById("musicToggle");
-      button.textContent=musicEnabled?"Music: "+(musicMode==="intro"?"Intro":"Gameplay"):"Music: Off";
+      const label=musicMode==="intro"?"Intro":musicMode==="gameplay"?"Gameplay":musicMode;
+      button.textContent=musicEnabled?"Music: "+label:"Music: Off";
       button.setAttribute("aria-pressed",String(musicEnabled));
     }
 
@@ -1173,6 +1465,12 @@
       else updateMusicButton();
     }
 
+    function triggerShake(damage=0){
+      const heavy=damage>=22;
+      shake=Math.max(shake,heavy ? .5 : .24);
+      shakePower=Math.max(shakePower,heavy?Math.min(20,10+damage*.18):6);
+    }
+
     document.getElementById("musicToggle").onclick=()=>{
       if(musicEnabled)stopBackgroundMusic();
       else startBackgroundMusic(musicMode);
@@ -1219,24 +1517,32 @@
     document.getElementById("playBtn").onclick=()=>{
       document.getElementById("menuScreen").style.display="none";
       document.getElementById("hud").style.display="block";
-      document.getElementById("controls").style.display=innerWidth<700?"flex":"none";
+      document.getElementById("controls").style.display=innerWidth<700?"grid":"none";
       Object.assign(player,{power:selected.power,speed:selected.speed,icon:selected.icon,name:selected.name});
       player.className=selected.name;
       player.weaponRole=selected.name==="Astra"?"Arcane bolt":selected.name==="Rook"?"Titan cleave":"Shadow volley";
       player.name=appearance.hunterName;
       player.appearance={...appearance};
       gameStarted=true;
-      setBackgroundMusicMode("gameplay");
+      setBackgroundMusicMode(currentZone.name);
       updateHUD();
       showDialogue("King Milan","The Underworld is open. Gather 5 keys from each zone.");
       saveUnderworldProgress();
     };
 
     addEventListener("keydown",e=>{
+      if(document.getElementById("loreOverlay").style.display==="flex"){
+        if(e.key==="Escape")closeLoreNote();
+        return;
+      }
       keysPressed[e.key.toLowerCase()] = true;
       if(e.key.toLowerCase()=="e") interact();
       if(e.key.toLowerCase()==="q") usePotion();
-      if(e.code==="Space"){e.preventDefault();attack();}
+      if(e.key.toLowerCase()==="r"&&!e.repeat&&currentZone.name==="H3ll"&&player.keys>=20&&!megaGateKey){
+        recoverH3llFight();
+      }
+      if(e.code==="Space"){e.preventDefault();dodge();}
+      if(e.key==="Shift"&&!e.repeat)useClassSkill();
       if(e.key==="Escape"){
         document.getElementById("npcDialogue").style.display="none";
         document.getElementById("marketOverlay").style.display="none";
@@ -1248,7 +1554,12 @@
       mouse.x=e.clientX;mouse.y=e.clientY;
       player.angle=Math.atan2(mouse.y-h/2,mouse.x-w/2);
     });
-    canvas.addEventListener("mousedown",()=>{mouse.down=true;player.angle=Math.atan2(mouse.y-h/2,mouse.x-w/2);});
+    canvas.addEventListener("contextmenu",e=>e.preventDefault());
+    canvas.addEventListener("mousedown",e=>{
+      player.angle=Math.atan2(mouse.y-h/2,mouse.x-w/2);
+      if(e.button===2){useClassSkill();return;}
+      if(e.button===0)mouse.down=true;
+    });
     addEventListener("mouseup",()=>mouse.down=false);
     canvas.addEventListener("touchstart",e=>{
       const t=e.touches[0];mouse.down=true;mouse.x=t.clientX;mouse.y=t.clientY;
@@ -1272,6 +1583,10 @@
       mouse.down=false;
       attack();
     });
+    document.getElementById("skillButton").addEventListener("pointerdown",e=>{
+      e.preventDefault();
+      useClassSkill();
+    });
     document.getElementById("potionButton").addEventListener("pointerdown",e=>{
       e.preventDefault();
       usePotion();
@@ -1286,14 +1601,16 @@
     }
 
     function isBossActive(enemy) {
-      if(enemy.isFinalBoss)return player.keys>=20;
+      if(enemy.isAlly)return false;
+      if(enemy.isFinalBoss)return player.keys>=20&&hellFinalePhase===3;
+      if(enemy.isFinaleEcho)return hellFinalePhase===1||hellFinalePhase===2;
       if(enemy.isBoss)return zoneKeys[enemy.zone]>=5;
       if(enemy.requiresHell)return player.keys>=20;
       return true;
     }
 
     function isProtectedZone(name) {
-      return name==="Safe Zone"||name==="Market";
+      return name==="Safe Zone"||name==="Market"||(name==="Fireball"&&fireballSanctuary);
     }
 
     function waystonePosition(zone) {
@@ -1303,6 +1620,375 @@
       };
       const offset=offsets[zone.name]||{x:0,y:0};
       return {x:zone.x+offset.x,y:zone.y+offset.y};
+    }
+
+    function showCombatBanner(text) {
+      const banner=document.getElementById("combatBanner");
+      banner.textContent=text;
+      banner.style.display="block";
+      clearTimeout(banner.hideTimer);
+      banner.hideTimer=setTimeout(()=>banner.style.display="none",2400);
+    }
+
+    function dodge() {
+      if(!gameStarted||player.dodgeCooldown>0)return;
+      let dx=(keysPressed.d||keysPressed.arrowright?1:0)-(keysPressed.a||keysPressed.arrowleft?1:0);
+      let dy=(keysPressed.s||keysPressed.arrowdown?1:0)-(keysPressed.w||keysPressed.arrowup?1:0);
+      if(!dx&&!dy){dx=Math.cos(player.angle);dy=Math.sin(player.angle);}
+      const length=Math.hypot(dx,dy)||1;
+      player.dodgeX=dx/length;player.dodgeY=dy/length;
+      player.dodgeTime=.35;player.dodgeCooldown=1.5;player.invulnerable=.35;
+      spawnCombatBurst(player.x,player.y,"#a9dfff",10,95,32);
+    }
+
+    function damageEnemy(enemy,amount,color="#ffffff",knockback=0,sourceX=player.x,sourceY=player.y,critical=false) {
+      if(enemy.dead||!isBossActive(enemy))return 0;
+      let damage=amount;
+      const incomingAngle=Math.atan2(sourceY-enemy.y,sourceX-enemy.x);
+      if(enemy.shieldTime>0&&Math.cos(incomingAngle-enemy.angle)>.45)damage*=.25;
+      if(enemy.isFinalBoss&&weaknessDiscovered)damage*=1.3;
+      damage=Math.max(1,Math.round(damage));
+      triggerShake(damage);
+      enemy.health-=damage;
+      enemy.hit=.08;
+      if(knockback){
+        const angle=Math.atan2(enemy.y-sourceY,enemy.x-sourceX);
+        enemy.x+=Math.cos(angle)*knockback;
+        enemy.y+=Math.sin(angle)*knockback;
+      }
+      damageNumbers.push({x:enemy.x,y:enemy.y-enemy.radius-10,value:damage,color:critical?"#ffd66e":enemy.isFinalBoss&&weaknessDiscovered?"#ff755e":"#ffffff",life:.85,maxLife:.85,critical});
+      spawnCombatBurst(enemy.x,enemy.y,color,5,85,0);
+      if(enemy.health<=0)defeatEnemy(enemy);
+      else if(enemy.isFinalBoss)saveUnderworldProgress();
+      return damage;
+    }
+
+    function startHellFinale() {
+      if(finaleArmySpawned||player.keys<20)return;
+      finaleArmySpawned=true;hellFinalePhase=1;finaleKills=0;finaleArmyTotal=8;
+      hellUnsealed=true;
+      const bossEchoes=[
+        ["Glacier Stalker","🐻‍❄️","#7bdcf5"],
+        ["Jam Jam","🍯","#ff874f"],
+        ["Milan the Villain","♛","#d9ee67"],
+        ["Void Eye","👁","#d59bff"]
+      ];
+      bossEchoes.forEach((boss,index)=>{
+        addEnemy(boss[0]+" · H3ll Echo",boss[1],-2800+Math.cos(index*Math.PI/2)*250,-60+Math.sin(index*Math.PI/2)*250,36,560,"H3ll",.9,{
+          isBoss:true,isFinaleEcho:true,keyBearer:false,radius:32,skillKind:index===0?"shadow":index===1?"brute":index===2?"dreadguard":"acolyte"
+        });
+        const echo=enemies[enemies.length-1];
+        echo.accent=boss[2];
+      });
+      for(let i=0;i<4;i++){
+        addEnemy("H3ll Elite","👹",-2800+Math.cos(i*Math.PI/2+Math.PI/4)*340,-40+Math.sin(i*Math.PI/2+Math.PI/4)*340,30,300,"H3ll",1.35,{
+          isFinaleEcho:true,keyBearer:false,skillKind:i===0?"shadow":i===1?"brute":i===2?"acolyte":"dreadguard"
+        });
+      }
+      const nelson=npcs.find(npc=>npc.name==="Nelson");
+      if(nelson){
+        nelson.active=true;nelson.trapped=false;nelson.awakened=true;nelson.following=true;
+        nelson.zone="H3ll";nelson.x=player.x-48;nelson.y=player.y+35;
+        nelson.role="AWAKENED ALLY · H3LL SURVIVOR";
+        nelson.text="The chains are broken. Stay near me—my stasis and sanctuary can turn this battle.";
+      }
+      enemyProjectiles.length=0;
+      showCombatBanner("PHASE I · THE ARMY CLASH");
+      showDialogue("H3ll Ambush","The four regions send their champions. Hold the line!");
+      saveUnderworldProgress();
+    }
+
+    function ensureH3llFightState() {
+      if(hellFinalePhase===1||hellFinalePhase===2){
+        const finaleEnemies=enemies.filter(enemy=>enemy.isFinaleEcho);
+        if(finaleEnemies.length===0){
+          const bossEchoes=[
+            ["Glacier Stalker","🐻‍❄️","#7bdcf5"],
+            ["Jam Jam","🍯","#ff874f"],
+            ["Milan the Villain","♛","#d9ee67"],
+            ["Void Eye","👁","#d59bff"]
+          ];
+          bossEchoes.forEach((boss,index)=>{
+            addEnemy(boss[0]+" · H3ll Echo",boss[1],-2800+Math.cos(index*Math.PI/2)*250,-60+Math.sin(index*Math.PI/2)*250,36,560,"H3ll",.9,{
+              isBoss:true,isFinaleEcho:true,keyBearer:false,radius:32,skillKind:["shadow","brute","dreadguard","acolyte"][index]
+            });
+            enemies[enemies.length-1].accent=boss[2];
+          });
+          for(let i=0;i<4;i++){
+            addEnemy("H3ll Elite","👹",-2800+Math.cos(i*Math.PI/2+Math.PI/4)*340,-40+Math.sin(i*Math.PI/2+Math.PI/4)*340,30,300,"H3ll",1.35,{
+              isFinaleEcho:true,keyBearer:false,skillKind:["shadow","brute","acolyte","dreadguard"][i]
+            });
+          }
+          finaleArmyTotal=8;
+          finaleKills=0;
+          showCombatBanner("FINALE RESTORED · HOLD THE ARENA");
+        }
+      }
+
+      if(hellFinalePhase===3){
+        let boss=enemies.find(enemy=>enemy.isFinalBoss);
+        if(!boss){
+          addEnemy("The BCob","👁",-2860,150,92,3900,"H3ll",1.05,{isFinalBoss:true,radius:50});
+          boss=enemies[enemies.length-1];
+        }
+        if(boss.dead&&!megaGateKey){
+          boss.dead=false;
+          boss.health=boss.maxHealth;
+        }
+        if(!boss.aggro)boss.aggro=true;
+        boss.zone="H3ll";
+        boss.x=boss.dead?-2860:boss.x;
+        boss.y=boss.dead?150:boss.y;
+
+        const nelson=npcs.find(npc=>npc.name==="Nelson");
+        if(nelson){
+          nelson.active=true;
+          nelson.awakened=true;
+          nelson.trapped=false;
+          nelson.following=true;
+          nelson.zone="H3ll";
+          if(Math.hypot(nelson.x+2800,nelson.y)>590){
+            nelson.x=-2850;
+            nelson.y=-120;
+          }
+        }
+        if(jamJamAlly){
+          const jamJam=enemies.find(enemy=>enemy.name==="Jam Jam");
+          if(jamJam){
+            jamJam.isAlly=true;jamJam.zone="H3ll";
+            if(Math.hypot(jamJam.x+2800,jamJam.y)>590){jamJam.x=-3050;jamJam.y=250;}
+            jamJam.aggro=false;
+          }
+        }
+      }
+    }
+
+    function recoverH3llFight() {
+      if(player.keys<20){
+        showCombatBanner("RECOVERY NEEDS ALL 20 KEYS");
+        return;
+      }
+      if(!finaleArmySpawned||hellFinalePhase===0){
+        startHellFinale();
+        showCombatBanner("FINALE RECOVERY · PHASE I");
+      }else if(hellFinalePhase===1){
+        beginFinalePhaseTwo();
+        finaleKills=Math.max(finaleKills,finaleArmyTotal);
+        showCombatBanner("RECOVERY · KING MILAN CALLED");
+      }else if(hellFinalePhase===2){
+        finaleKills=finaleArmyTotal;
+        beginFinalePhaseThree();
+        showCombatBanner("RECOVERY · BCob ARENA OPEN");
+      }else{
+        finaleBossStarted=true;
+        ensureH3llFightState();
+        player.x=-2800;
+        player.y=-180;
+        player.health=Math.max(player.health,player.maxHealth*.5);
+        showCombatBanner("RECOVERY · RETURN TO BCob");
+      }
+    }
+
+    function beginFinalePhaseTwo() {
+      if(hellFinalePhase!==1)return;
+      hellFinalePhase=2;kingMilanArrived=true;kingMilanStrike=.2;
+      const king=npcs.find(npc=>npc.name==="King Milan");
+      if(king){king.zone="H3ll";king.x=-2800;king.y=-80;king.active=true;king.finaleAlly=true;}
+      showCombatBanner("PHASE II · KING MILAN ARRIVES");
+      showDialogue("King Milan","We hold the horde—finish the BCob!");
+      spawnCombatBurst(-2800,-80,"#ffe08a",36,260,190);
+      saveUnderworldProgress();
+    }
+
+    function beginFinalePhaseThree() {
+      if(hellFinalePhase!==2)return;
+      hellFinalePhase=3;enemyProjectiles.length=0;projectiles.length=0;
+      finaleBossStarted=true;nelsonChronoTimer=18;nelsonSanctuaryTimer=25;
+      const boss=enemies.find(enemy=>enemy.isFinalBoss);
+      const king=npcs.find(npc=>npc.name==="King Milan");
+      if(king)king.y=-780;
+      player.x=-2800;
+      player.y=-180;
+      if(boss){
+        boss.x=-2860;
+        boss.y=150;
+        boss.aggro=true;
+      }
+      const nelson=npcs.find(npc=>npc.name==="Nelson");
+      if(nelson){
+        nelson.x=-2850;
+        nelson.y=-120;
+        nelson.zone="H3ll";
+        nelson.following=true;
+      }
+      if(jamJamAlly){
+        const jamJam=enemies.find(enemy=>enemy.name==="Jam Jam");
+        if(jamJam){
+          jamJam.isAlly=true;jamJam.zone="H3ll";jamJam.x=-3050;jamJam.y=250;
+          jamJam.aggro=false;jamJamAssistTimer=3;
+        }
+      }
+      for(const enemy of enemies){
+        if(enemy.zone==="H3ll"&&!enemy.isFinalBoss&&!enemy.isFinaleEcho&&!enemy.isAlly){
+          enemy.x=enemy.spawnX< -2800?-2800: -2100;
+          enemy.y=enemy.spawnX< -2800?-720:0;
+          enemy.aggro=false;
+        }
+      }
+      if(boss){
+        boss.health=boss.maxHealth;
+        if(weaknessDiscovered){
+          showCombatBanner("PHASE III · NELSON'S BEAM BREAKS BCob'S ARMOR");
+          spawnCombatBurst(boss.x,boss.y,"#fff1a4",32,240,150);
+        }else showCombatBanner("PHASE III · THE SEALED 1V1");
+      }
+      showDialogue("Sealed Arena","The hellfire ring rises. You and Nelson face The BCob alone.");
+      saveUnderworldProgress();
+    }
+
+    function updateFinale(dt) {
+      if(currentZone.name==="H3ll"&&player.keys>=20&&!finaleArmySpawned)startHellFinale();
+      if(currentZone.name==="H3ll"&&player.keys>=20)ensureH3llFightState();
+      if(currentZone.name==="H3ll"&&(hellFinalePhase===1||hellFinalePhase===2)){
+        const livingEchoes=enemies.some(enemy=>enemy.isFinaleEcho&&!enemy.dead);
+        if(!livingEchoes){
+          finaleKills=Math.max(finaleKills,finaleArmyTotal||8);
+          if(hellFinalePhase===1)beginFinalePhaseTwo();
+          else beginFinalePhaseThree();
+        }
+      }
+      if(hellFinalePhase===1&&(finaleKills>=Math.ceil(finaleArmyTotal/2)||player.health<=player.maxHealth*.4)){
+        beginFinalePhaseTwo();
+      }
+      if(hellFinalePhase===2){
+        kingMilanStrike-=dt;
+        if(kingMilanStrike<=0){
+          kingMilanStrike=.95;
+          const king=npcs.find(npc=>npc.name==="King Milan");
+          if(king){
+            spawnCombatBurst(king.x,king.y,"#ffe08a",20,210,210);
+            for(const enemy of enemies){
+              if(enemy.dead||!enemy.isFinaleEcho)continue;
+              if(Math.hypot(enemy.x-king.x,enemy.y-king.y)<430)damageEnemy(enemy,enemy.health,"#ffe08a",30,king.x,king.y);
+            }
+          }
+          if(!enemies.some(enemy=>enemy.isFinaleEcho&&!enemy.dead))beginFinalePhaseThree();
+        }
+      }
+      if(hellFinalePhase===3&&finaleBossStarted){
+        const boss=enemies.find(enemy=>enemy.isFinalBoss);
+        const nelson=npcs.find(npc=>npc.name==="Nelson");
+        if(nelson&&!nelson.awakened){
+          nelson.active=true;
+          nelson.awakened=true;
+          nelson.following=true;
+          nelson.zone="H3ll";
+        }
+        if(!boss||boss.dead||!nelson)return;
+        if(jamJamAlly){
+          const jamJam=enemies.find(enemy=>enemy.name==="Jam Jam");
+          if(jamJam){
+            jamJamAssistTimer-=dt;
+            if(jamJamAssistTimer<=0){
+              jamJamAssistTimer=7;
+              spawnCombatBurst(boss.x,boss.y,"#ff8b3d",28,220,130);
+              damageEnemy(boss,145,"#ff9b45",34,jamJam.x,jamJam.y);
+              showCombatBanner("JAM JAM · EMBER BURST");
+            }
+          }
+        }
+        if(currentZone.name==="H3ll"){
+          if(Math.hypot(player.x+2800,player.y)>590){
+            player.x=-2800;
+            player.y=-180;
+            player.invulnerable=1.5;
+            barrierFlash=.8;
+            showCombatBanner("ARENA RESET · RETURN TO THE BCob");
+          }
+          if(Math.hypot(boss.x+2800,boss.y)>590){
+            boss.x=-2860;
+            boss.y=150;
+            boss.stunned=Math.max(boss.stunned,1);
+          }
+          if(!nelson.following){
+            nelson.following=true;
+            nelson.zone="H3ll";
+          }
+        }
+        nelsonChronoTimer-=dt;
+        if(nelsonChronoTimer<=0){
+          nelsonChronoTimer=18;boss.stunned=Math.max(boss.stunned,2.5);
+          spawnCombatBurst(boss.x,boss.y,"#a8e8ff",24,180,110);
+          showCombatBanner("NELSON · CHRONO STASIS");
+        }
+        nelsonSanctuaryTimer-=dt;
+        if(nelsonSanctuaryTimer<=0){
+          nelsonSanctuaryTimer=25;
+          sanctuaryField={x:nelson.x,y:nelson.y,life:8,maxLife:8,radius:175};
+          showCombatBanner("NELSON · SANCTUARY FIELD");
+        }
+        if(sanctuaryField){
+          sanctuaryField.x=nelson.x;sanctuaryField.y=nelson.y;
+          sanctuaryField.life-=dt;
+          if(Math.hypot(player.x-sanctuaryField.x,player.y-sanctuaryField.y)<sanctuaryField.radius){
+            const priorHealth=player.health;
+            player.health=Math.min(player.maxHealth,player.health+5*dt);
+            if(player.health!==priorHealth)updateHUD();
+          }
+          if(sanctuaryField.life<=0)sanctuaryField=null;
+        }
+      }
+      updateCombatUI();
+    }
+
+    function useClassSkill() {
+      if(!gameStarted||player.skillCooldown>0)return;
+      player.skillCooldown=10;
+      if(player.className==="Astra"){
+        activeSkillEffect={kind:"nova",x:player.x,y:player.y,life:.65,maxLife:.65,radius:270};
+        for(const enemy of enemies){
+          if(!enemy.dead&&isBossActive(enemy)&&enemy.zone===currentZone.name&&Math.hypot(enemy.x-player.x,enemy.y-player.y)<270){
+            damageEnemy(enemy,20,"#c49aff",68);
+          }
+        }
+        showCombatBanner("ARCANE NOVA");
+      }else if(player.className==="Rook"){
+        const targetX=player.x+Math.cos(player.angle)*150;
+        const targetY=player.y+Math.sin(player.angle)*150;
+        const startX=player.x,startY=player.y;
+        player.x=targetX;player.y=targetY;
+        activeSkillEffect={kind:"slam",x:targetX,y:targetY,angle:player.angle,life:.55,maxLife:.55,radius:185};
+        for(const enemy of enemies){
+          if(enemy.dead||!isBossActive(enemy)||enemy.zone!==currentZone.name)continue;
+          const angle=Math.atan2(enemy.y-targetY,enemy.x-targetX);
+          const distance=Math.hypot(enemy.x-targetX,enemy.y-targetY);
+          if(distance<185&&Math.cos(angle-player.angle)>.35){
+            enemy.stunned=1.5;enemy.windup=0;enemy.skillState="";
+            damageEnemy(enemy,12,"#ffd36e",55,startX,startY);
+          }
+        }
+        showCombatBanner("VANGUARD SLAM · ENEMIES STAGGERED");
+      }else{
+        const startX=player.x,startY=player.y;
+        player.x+=Math.cos(player.angle)*90;
+        player.y+=Math.sin(player.angle)*90;
+        activeSkillEffect={kind:"decoy",x:startX,y:startY,life:.8,maxLife:.8,radius:34};
+        player.nextCritical=true;
+        spawnCombatBurst(startX,startY,"#9f63c9",12,120,40);
+        showCombatBanner("SHADOW BLINK · NEXT VOLLEY CRITICAL");
+      }
+      updateZoneUI();
+      updateNpcPrompt();
+    }
+
+    function updateCombatUI() {
+      const dodgeText=player.dodgeCooldown>0?player.dodgeCooldown.toFixed(1)+"s":"READY";
+      const skillText=player.skillCooldown>0?player.skillCooldown.toFixed(1)+"s":"READY";
+      document.getElementById("dodgeStatus").textContent=dodgeText;
+      document.getElementById("skillStatus").textContent=skillText;
+      const skillButton=document.getElementById("skillButton");
+      skillButton.disabled=player.skillCooldown>0;
+      skillButton.textContent=player.skillCooldown>0?"Skill · "+Math.ceil(player.skillCooldown):"Skill";
     }
 
     function update(dt) {
@@ -1317,8 +2003,20 @@
       player.walkPhase+=dt*(player.isMoving?13:2.4);
       if(dx||dy) {
         const len=Math.hypot(dx,dy);dx/=len;dy/=len;
-        player.x+=dx*player.speed*dt*60;
-        player.y+=dy*player.speed*dt*60;
+        if(player.dodgeTime<=0){player.dodgeX=dx;player.dodgeY=dy;}
+      }
+      const dodgeActive=player.dodgeTime>0;
+      const moveScale=dodgeActive?3.2:1;
+      if(dodgeActive)player.isMoving=true;
+      if(player.isMoving) {
+        const moveX=dodgeActive?player.dodgeX:dx;
+        const moveY=dodgeActive?player.dodgeY:dy;
+        player.x+=moveX*player.speed*dt*60*moveScale;
+        player.y+=moveY*player.speed*dt*60*moveScale;
+      }
+      player.dodgeTime=Math.max(0,player.dodgeTime-dt);
+      if(currentZone.name==="H3ll"&&hellFinalePhase===3&&!megaGateKey&&Math.hypot(player.x+2800,player.y)>590){
+        player.x=previousX;player.y=previousY;barrierFlash=.25;
       }
       for(let i=visualEffects.length-1;i>=0;i--){
         const effect=visualEffects[i];
@@ -1334,7 +2032,20 @@
       player.invulnerable=Math.max(0,player.invulnerable-dt);
       attackFlash=Math.max(0,attackFlash-dt);
       shake=Math.max(0,shake-dt);
+      shakePower=Math.max(0,shakePower-dt*42);
       player.attackCooldown=Math.max(0,player.attackCooldown-dt);
+      player.dodgeCooldown=Math.max(0,player.dodgeCooldown-dt);
+      player.skillCooldown=Math.max(0,player.skillCooldown-dt);
+      if(activeSkillEffect){activeSkillEffect.life-=dt;if(activeSkillEffect.life<=0)activeSkillEffect=null;}
+      if(barrierFlash>0)barrierFlash=Math.max(0,barrierFlash-dt);
+      if(nelsonBlessingTime>0){
+        nelsonBlessingTime=Math.max(0,nelsonBlessingTime-dt);
+        if(nelsonBlessingTime===0)player.speed=Math.max(1,player.speed/1.1);
+      }
+      for(let i=damageNumbers.length-1;i>=0;i--){
+        const number=damageNumbers[i];number.life-=dt;number.y-=38*dt;
+        if(number.life<=0)damageNumbers.splice(i,1);
+      }
 
       for(const npc of npcs){
         if(npc.name==="Nelson"){
@@ -1348,6 +2059,7 @@
             continue;
           }
         }
+        if(npc.finaleAlly){npc.phase+=dt*npc.speed;continue;}
         npc.phase+=dt*npc.speed;
         npc.x=npc.spawnX+Math.cos(npc.phase)*npc.patrolRadius;
         npc.y=npc.spawnY+Math.sin(npc.phase*.72)*npc.patrolRadius*.65;
@@ -1365,6 +2077,15 @@
         hellLockedWarning=false;
       }
       currentZone=nextZone;
+      if(currentZone.name!==lastZoneName){
+        setBackgroundMusicMode(currentZone.name);
+        if(currentZone.name==="Safe Zone"&&nelsonBlessingPending){
+          player.speed*=1.1;nelsonBlessingTime=30;nelsonBlessingPending=false;
+          showCombatBanner("NELSON'S BLESSING · +10% SPEED");
+        }
+        lastZoneName=currentZone.name;
+      }
+      updateFinale(dt);
       updateZoneUI();
       updateNpcPrompt();
 
@@ -1373,6 +2094,13 @@
       for(let i=enemyProjectiles.length-1;i>=0;i--){
         const projectile=enemyProjectiles[i];
         projectile.life-=dt;
+        if(projectile.homing){
+          const targetAngle=Math.atan2(player.y-projectile.y,player.x-projectile.x);
+          let turn=targetAngle-Math.atan2(projectile.dy,projectile.dx);
+          turn=Math.atan2(Math.sin(turn),Math.cos(turn));
+          const nextAngle=Math.atan2(projectile.dy,projectile.dx)+Math.max(-1.3*dt,Math.min(1.3*dt,turn));
+          projectile.dx=Math.cos(nextAngle);projectile.dy=Math.sin(nextAngle);
+        }
         projectile.x+=projectile.dx*projectile.speed*dt;
         projectile.y+=projectile.dy*projectile.speed*dt;
         if(Math.hypot(player.x-projectile.x,player.y-projectile.y)<player.radius+projectile.radius){
@@ -1393,14 +2121,8 @@
           if(enemy.dead||!isBossActive(enemy))continue;
           const dist=Math.hypot(projectile.x-enemy.x,projectile.y-enemy.y);
           if(dist<enemy.radius+(projectile.radius||7)){
-            spawnCombatBurst(projectile.x,projectile.y,monsterPalette(enemy).accent,8,105,30);
-            enemy.health-=projectile.damage;
-            enemy.hit=.18;
-            const push=Math.atan2(enemy.y-projectile.y,enemy.x-projectile.x);
-            const knockback=projectile.knockback||12;
-            enemy.x+=Math.cos(push)*knockback;
-            enemy.y+=Math.sin(push)*knockback;
-            if(enemy.health<=0)defeatEnemy(enemy);
+            const critical=!!projectile.critical;
+            damageEnemy(enemy,projectile.damage,critical?"#ffd66e":monsterPalette(enemy).accent,projectile.knockback||12,player.x,player.y,critical);
             consumed=true;
             break;
           }
@@ -1413,7 +2135,7 @@
 
       for(const enemy of enemies) {
         if(enemy.dead) {
-          if(enemy.isFinalBoss)continue;
+          if(enemy.isFinalBoss||enemy.isFinaleEcho)continue;
           enemy.respawn-=dt;
           if(enemy.respawn<=0) {
             enemy.dead=false;
@@ -1423,24 +2145,110 @@
           }
           continue;
         }
-        if(!isBossActive(enemy)||enemy.zone!==currentZone.name)continue;
+        if(!isBossActive(enemy))continue;
+        if(hellFinalePhase===3&&enemy.zone==="H3ll"&&!enemy.isFinalBoss&&!enemy.isFinaleEcho&&!enemy.isAlly)continue;
+        const safeZone=zones.find(zone=>zone.name==="Safe Zone");
+        const safeDistance=safeZone?Math.hypot(enemy.x-safeZone.x,enemy.y-safeZone.y):Infinity;
+        if(enemy.aggro&&safeZone&&safeDistance<=safeZone.radius+24){
+          enemy.aggro=false;enemy.safeRepel=3;enemy.skillState="";enemy.windup=0;enemy.shieldTime=0;
+          const awayAngle=Math.atan2(enemy.y-safeZone.y,enemy.x-safeZone.x);
+          enemy.x+=Math.cos(awayAngle)*90;enemy.y+=Math.sin(awayAngle)*90;enemy.angle=awayAngle;
+          barrierFlash=.72;
+          visualEffects.push({kind:"barrier",x:safeZone.x+Math.cos(awayAngle)*safeZone.radius,y:safeZone.y+Math.sin(awayAngle)*safeZone.radius,life:.72,maxLife:.72,color:"#a9c8ff",radius:68});
+        }
+        if(enemy.zone!==currentZone.name)continue;
         if(isProtectedZone(currentZone.name))continue;
         const dist=Math.hypot(player.x-enemy.x,player.y-enemy.y);
-        if(dist>900) continue;
         enemy.hit=Math.max(0,enemy.hit-dt);
-        enemy.angle=Math.atan2(player.y-enemy.y,player.x-enemy.x);
         enemy.attackCooldown-=dt;
         enemy.contactCooldown=Math.max(0,enemy.contactCooldown-dt);
-        if(dist<420) {
-          enemy.angle=Math.atan2(player.y-enemy.y,player.x-enemy.x);
-          const nextX=enemy.x+Math.cos(enemy.angle)*enemy.speed*dt*60;
-          const nextY=enemy.y+Math.sin(enemy.angle)*enemy.speed*dt*60;
-          const home=zones.find(zone=>zone.name===enemy.zone);
-          const withinHome=home&&Math.hypot(nextX-home.x,nextY-home.y)<home.radius*.94;
-          const safeBoundary=zones.filter(zone=>isProtectedZone(zone.name)).every(zone=>Math.hypot(nextX-zone.x,nextY-zone.y)>zone.radius+24);
-          if(withinHome&&safeBoundary){enemy.x=nextX;enemy.y=nextY;}
+        enemy.stunned=Math.max(0,enemy.stunned-dt);
+        enemy.shieldTime=Math.max(0,enemy.shieldTime-dt);
+        enemy.safeRepel=Math.max(0,(enemy.safeRepel||0)-dt);
+        if(enemy.windup>0)enemy.windup=Math.max(0,enemy.windup-dt);
+        if(dist>MONSTER_LEASH&&enemy.aggro){
+          enemy.aggro=false;enemy.skillState="";enemy.windup=0;enemy.shieldTime=0;
         }
-        if(enemy.isFinalBoss&&dist<560&&enemy.attackCooldown<=0){
+        if(!enemy.aggro&&enemy.safeRepel<=0&&dist<MONSTER_DETECTION)enemy.aggro=true;
+        enemy.angle=Math.atan2(player.y-enemy.y,player.x-enemy.x);
+        if(enemy.stunned>0)continue;
+
+        const home=zones.find(zone=>zone.name===enemy.zone);
+        let moveAngle=enemy.angle;
+        let moveSpeed=0;
+        if(enemy.aggro&&dist<=MONSTER_LEASH){
+          if(dist>enemy.radius+player.radius+10){moveSpeed=enemy.speed*60;}
+        }else if(home&&Math.hypot(enemy.x-home.x,enemy.y-home.y)>home.radius*.8){
+          moveAngle=Math.atan2(home.y-enemy.y,home.x-enemy.x);moveSpeed=enemy.speed*38;
+        }else{
+          enemy.patrolPhase+=dt*.32;
+          const patrolX=enemy.spawnX+Math.cos(enemy.patrolPhase)*34;
+          const patrolY=enemy.spawnY+Math.sin(enemy.patrolPhase*.8)*24;
+          moveAngle=Math.atan2(patrolY-enemy.y,patrolX-enemy.x);
+          if(Math.hypot(patrolX-enemy.x,patrolY-enemy.y)>8)moveSpeed=enemy.speed*18;
+        }
+        if(enemy.skillState==="shadow-windup"&&enemy.windup<=0){
+          enemy.skillState="shadow-lunge";enemy.skillTimer=.28;enemy.lungeAngle=enemy.angle;
+        }else if(enemy.skillState==="brute-windup"&&enemy.windup<=0){
+          enemy.skillState="";enemy.skillTimer=0;
+          if(dist<175&&player.invulnerable<=0){
+            hurt(enemy.power*1.35);
+            const push=Math.atan2(player.y-enemy.y,player.x-enemy.x);
+            player.x+=Math.cos(push)*75;player.y+=Math.sin(push)*75;
+          }
+          spawnCombatBurst(enemy.x,enemy.y,"#ff4e4e",22,175,125);
+        }else if(enemy.skillState==="dreadguard-windup"&&enemy.windup<=0){
+          enemy.skillState="dreadguard-charge";enemy.skillTimer=.85;
+        }
+
+        if(enemy.skillState==="shadow-lunge"){
+          enemy.skillTimer-=dt;moveAngle=enemy.lungeAngle;moveSpeed=enemy.speed*210;
+          if(Math.hypot(player.x-enemy.x,player.y-enemy.y)<enemy.radius+player.radius+8&&player.invulnerable<=0){
+            hurt(enemy.power);enemy.skillTimer=0;
+          }
+          if(enemy.skillTimer<=0)enemy.skillState="";
+        }else if(enemy.skillState==="dreadguard-charge"){
+          enemy.skillTimer-=dt;moveSpeed=enemy.speed*170;
+          if(enemy.skillTimer<=0){enemy.skillState="";enemy.shieldTime=0;}
+        }
+
+        if(enemy.aggro&&dist<540&&enemy.skillCooldown<=0&&performance.now()/1000-globalMonsterSkillAt>=1&&enemy.skillKind){
+          globalMonsterSkillAt=performance.now()/1000;enemy.skillCooldown=5;
+          if(enemy.skillKind==="shadow"){
+            enemy.skillState="shadow-windup";enemy.windup=.8;
+          }else if(enemy.skillKind==="brute"){
+            enemy.skillState="brute-windup";enemy.windup=1.2;
+          }else if(enemy.skillKind==="acolyte"){
+            const angle=enemy.angle;
+            enemyProjectiles.push({x:enemy.x+Math.cos(angle)*25,y:enemy.y+Math.sin(angle)*25,dx:Math.cos(angle),dy:Math.sin(angle),speed:180,life:4,damage:22,radius:12,color:"#a66aff",homing:true});
+          }else if(enemy.skillKind==="dreadguard"){
+            enemy.skillState="dreadguard-windup";enemy.windup=.35;enemy.shieldTime=2;
+          }
+        }
+
+        if(moveSpeed>0){
+          const nextX=enemy.x+Math.cos(moveAngle)*moveSpeed*dt;
+          const nextY=enemy.y+Math.sin(moveAngle)*moveSpeed*dt;
+          const withinHome=home&&Math.hypot(nextX-home.x,nextY-home.y)<home.radius*.94;
+          const protectedZone=zones.find(zone=>zone.name==="Safe Zone");
+          const nextSafeDistance=protectedZone?Math.hypot(nextX-protectedZone.x,nextY-protectedZone.y):Infinity;
+          if(nextSafeDistance<=protectedZone.radius+24){
+            enemy.aggro=false;enemy.safeRepel=3;enemy.skillState="";enemy.windup=0;enemy.shieldTime=0;
+            barrierFlash=.72;
+            const angle=Math.atan2(enemy.y-protectedZone.y,enemy.x-protectedZone.x);
+            const boundaryX=protectedZone.x+Math.cos(angle)*protectedZone.radius;
+            const boundaryY=protectedZone.y+Math.sin(angle)*protectedZone.radius;
+            visualEffects.push({kind:"barrier",x:boundaryX,y:boundaryY,life:.72,maxLife:.72,color:"#a9c8ff",radius:68});
+          }else if(withinHome||enemy.isFinaleEcho){
+            enemy.x=nextX;enemy.y=nextY;
+          }
+        }
+        enemy.skillCooldown-=dt;
+        if(dist>MONSTER_LEASH&&Math.hypot(enemy.x-(enemy.spawnX||0),enemy.y-(enemy.spawnY||0))<30){
+          enemy.aggro=false;
+        }
+
+        if(enemy.isFinalBoss&&hellFinalePhase===3&&dist<560&&enemy.attackCooldown<=0&&!enemy.stunned){
           for(let spread=-1;spread<=1;spread++){
             const angle=enemy.angle+spread*.22;
             enemyProjectiles.push({
@@ -1451,7 +2259,7 @@
           }
           enemy.attackCooldown=2.1;
         }
-        if(dist<55&&enemy.contactCooldown<=0&&player.invulnerable<=0) {
+        if(dist<55&&enemy.contactCooldown<=0&&player.invulnerable<=0&&enemy.stunned<=0) {
             enemy.contactCooldown=enemy.isFinalBoss?.9:enemy.isBoss?.8:1.15;
             hurt(enemy.power);
         }
@@ -1481,10 +2289,14 @@
         Nyx:{damage:.3,cooldown:1.05,speed:760,radius:6,spread:[-.15,0,.15],color:"#d98cff",knockback:9,shape:"dart"}
       };
       const style=attackStyles[player.className]||attackStyles.Astra;
+      const critical=player.className==="Nyx"&&player.nextCritical;
       player.attackCooldown=player.weaponCooldown*style.cooldown;
       attackFlash=.28;
-      shake=.12;
+      triggerShake(0);
       spawnCombatBurst(player.x+Math.cos(player.angle)*28,player.y+Math.sin(player.angle)*28,"#f5ca67",4,72,16);
+      if(player.weapon==="Iron Blade"||player.weapon==="Wraithfang"){
+        visualEffects.push({kind:"slash",x:player.x,y:player.y,angle:player.angle,life:.24,maxLife:.24,color:player.weapon==="Wraithfang"?"#d889ff":"#e7f2ff",radius:55});
+      }
       style.spread.forEach(offset=>{
         const angle=player.angle+offset;
         projectiles.push({
@@ -1494,14 +2306,16 @@
           dy:Math.sin(angle),
           speed:style.speed*(player.weapon==="Wraithfang"?1.12:1),
           life:player.weapon==="Wraithfang"?1.2:1.05,
-          damage:Math.round(player.power*style.damage+player.weaponBonus*4),
+          damage:Math.round((player.power*style.damage+player.weaponBonus*4)*(critical?1.5:1)),
           radius:style.radius,
           knockback:style.knockback,
           color:style.color,
           shape:style.shape,
+          critical,
           role:player.weaponRole
         });
       });
+      if(critical){player.nextCritical=false;showCombatBanner("NYX · CRITICAL VOLLEY");}
     }
 
     function defeatEnemy(enemy) {
@@ -1509,11 +2323,18 @@
       enemy.dead=true;
       const palette=monsterPalette(enemy);
       spawnCombatBurst(enemy.x,enemy.y,palette.accent,enemy.isBoss||enemy.isFinalBoss?30:16,enemy.isBoss||enemy.isFinalBoss?210:145,enemy.isBoss||enemy.isFinalBoss?105:48);
-      enemy.respawn=enemy.isFinalBoss?0:8;
+      enemy.respawn=enemy.isFinalBoss||enemy.isFinaleEcho?0:8;
       const boss=enemy.isBoss||enemy.isFinalBoss;
-      player.gold+=boss?500:80;
-      player.exp+=boss?5:2;
+      player.gold+=enemy.isFinaleEcho?160:boss?500:80;
+      player.exp+=enemy.isFinaleEcho?3:boss?5:2;
       player.health=Math.min(player.maxHealth,player.health+12);
+      if(enemy.isFinaleEcho){
+        if(hellFinalePhase===1)finaleKills++;
+        if(hellFinalePhase===2)finaleKills++;
+        updateHUD();
+        saveUnderworldProgress();
+        return;
+      }
       const recoveredKey=enemy.keyBearer&&!enemy.keyRecovered&&zoneKeys[enemy.zone]!==undefined;
       if(recoveredKey) {
         enemy.keyRecovered=true;
@@ -1548,6 +2369,8 @@
         const nelson=npcs.find(npc=>npc.name==="Nelson");
         if(nelson){
           nelson.active=true;
+          nelson.trapped=false;
+          nelson.awakened=true;
           unlockedHellNow=true;
         }
       }
@@ -1564,7 +2387,7 @@
     function hurt(amount) {
       player.health-=amount;
       player.invulnerable=.75;
-      shake=.28;
+      triggerShake(amount);
       updateHUD();
       if(player.health<=0) {
         player.health=player.maxHealth;
@@ -1576,6 +2399,18 @@
     }
 
     function interact() {
+      const fragment=loreFragments.find(item=>item.zone===currentZone.name&&!discoveredLoreFragments.has(item.id)&&Math.hypot(player.x-item.x,player.y-item.y)<72);
+      if(fragment){
+        discoveredLoreFragments.add(fragment.id);
+        showCombatBanner("MEMORY FRAGMENT RECOVERED");
+        openLoreNote(fragment.title,fragment.text,"RECOVERED MEMORY");
+        saveUnderworldProgress();
+        return;
+      }
+      if(currentZone.name==="Safe Zone"&&nelsonHasBeenRescued()&&Math.hypot(player.x-gateChit.x,player.y-gateChit.y)<72){
+        openLoreNote("The Chit at the Mega Gate",gateChitText(),"NELSON'S HANDWRITING");
+        return;
+      }
       if(currentZone.name==="Safe Zone"&&Math.hypot(player.x-megaGate.x,player.y-megaGate.y)<105){
         if(!megaGateKey){
           showDialogue("Mega Gate","The gate needs its key. Break H3ll's seal, then defeat The BCob.");
@@ -1594,8 +2429,64 @@
         }
         return;
       }
-      if(currentZone.name==="H3ll"&&!nelsonRiftClosed&&!hellReturnPortal.closed&&nelsonSecretAccess&&Math.hypot(player.x-hellReturnPortal.x,player.y-hellReturnPortal.y)<105){
-        returnFromNelsonPortal();
+      if(currentZone.name==="H3ll"&&!nelsonRiftClosed&&!hellReturnPortal.closed&&nelsonSecretAccess){
+        const returnDistance=Math.hypot(player.x-hellReturnPortal.x,player.y-hellReturnPortal.y);
+        const closestNpcDistance=npcs.reduce((closest,npc)=>{
+          if((npc.zone!==currentZone.name&&!npc.following)||npc.active===false)return closest;
+          return Math.min(closest,Math.hypot(player.x-npc.x,player.y-npc.y));
+        },Infinity);
+        if(returnDistance<105&&returnDistance<closestNpcDistance){
+          returnFromNelsonPortal();
+          return;
+        }
+      }
+      if(currentZone.name==="Frossbite"&&!weaknessDiscovered&&Math.hypot(player.x-hiddenRelic.x,player.y-hiddenRelic.y)<85){
+        weaknessDiscovered=true;hiddenRelic.discovered=true;
+        showCombatBanner("BCob'S ARMOR WEAKNESS DISCOVERED");
+        showDialogue("Relic of Ruin","The relic reveals a fracture in the BCob's armor. Your attacks will deal 30% more damage to it.");
+        saveUnderworldProgress();
+        return;
+      }
+      if(currentZone.name==="Training Zone"&&!trainingKeyFound&&!trainingKeyUsed&&Math.hypot(player.x-trainingKey.x,player.y-trainingKey.y)<100){
+        trainingKeyFound=true;
+        zoneKeys.Fireball=5;
+        player.keys=Object.values(zoneKeys).reduce((total,amount)=>total+amount,0);
+        let openedHell=false;
+        if(player.keys>=20&&!hellUnsealed){
+          hellUnsealed=true;
+          openedHell=true;
+          const nelson=npcs.find(npc=>npc.name==="Nelson");
+          if(nelson){nelson.active=true;nelson.trapped=false;nelson.awakened=true;}
+        }
+        showCombatBanner("EMBER KEY · 5 FIREBALL KEYS RECOVERED");
+        showDialogue("Training Grounds",openedHell
+          ?"The Ember Key grants all five Fireball keys, opening H3ll. Take it to Jam Jam and press E beside him to lift his curse."
+          :"The Ember Key grants all five Fireball keys. Take it to Jam Jam in the Fireball zone and press E beside him.");
+        updateHUD();
+        updateZoneUI();
+        saveUnderworldProgress();
+        return;
+      }
+      const jamJam=enemies.find(enemy=>enemy.name==="Jam Jam");
+      if(currentZone.name==="Fireball"&&jamJam&&Math.hypot(player.x-jamJam.x,player.y-jamJam.y)<125){
+        if(trainingKeyFound&&!jamJamAlly){
+          trainingKeyFound=false;trainingKeyUsed=true;jamJamAlly=true;fireballSanctuary=true;
+          for(const enemy of enemies){
+            if(enemy.zone!=="Fireball")continue;
+            enemy.aggro=false;enemy.skillState="";enemy.windup=0;enemy.shieldTime=0;
+            if(enemy!==jamJam){enemy.dead=true;enemy.respawn=Infinity;}
+          }
+          jamJam.dead=false;jamJam.isAlly=true;jamJam.health=jamJam.maxHealth;jamJam.x=jamJam.spawnX;jamJam.y=jamJam.spawnY;
+          enemyProjectiles.length=0;
+          showCombatBanner("EMBER KEY · FIREBALL SANCTUARY");
+          showDialogue("Jam Jam","The Ember Key breaks the curse. The Fireball zone is safe now. I will join you in H3ll and help bring down the BCob!");
+          saveUnderworldProgress();
+          updateZoneUI();
+        }else if(jamJamAlly){
+          showDialogue("Jam Jam","The Fireball zone is quiet again. When you face the BCob, my ember burst will help you.");
+        }else{
+          showDialogue("Jam Jam","That key's warmth could free us from the curse. Find the Ember Key in the Training Zone.");
+        }
         return;
       }
       for(const npc of npcs) {
@@ -1617,7 +2508,8 @@
         nelsonVisitCount=1;
         const nelson=npcs.find(npc=>npc.name==="Nelson");
         nelson.active=true;
-        nelson.text="Astra, listen carefully: this rift allows only one visit and one return. Use this chance to hear my warning, then leave through the rift—I cannot open it again.";
+        nelson.text="Only one visit and one return. Beneath the twin broken arches of Frossbite lies the Relic of Ruin. Touch it to expose the BCob's weakness.";
+        nelson.x=-3180;nelson.y=-260;
         document.getElementById("marketOverlay").style.display="none";
         currentZone=zones.find(zone=>zone.name==="H3ll");
         player.x=nelson.x+58;
@@ -1642,14 +2534,16 @@
           ?"The Market rift reaches Nelson's refuge, but The BCob remains sealed until all 20 keys are recovered."
           :"H3ll remains sealed until all 20 regional keys are recovered."
         :nelsonRiftClosed
-          ?"The one-time Nelson rift is closed. Regional H3ll access must remain sealed."
+          ?"The one-time Nelson rift is sealed. The 20-key waystone now opens H3ll."
         :"All 20 keys are yours. H3ll is now open.";
       for(const zone of zones){
         if(zone.name===currentZone.name)continue;
         const button=document.createElement("button");
         button.className="portalChoice";
-        button.textContent=zone.name==="H3ll"&&(player.keys<20||nelsonRiftClosed)?"H3ll · sealed":zone.name;
-        button.disabled=zone.name==="H3ll"&&(player.keys<20||nelsonRiftClosed);
+        button.style.setProperty("--zone-accent",zone.accent);
+        const sealed=zone.name==="H3ll"&&player.keys<20;
+        button.innerHTML="<strong>"+(sealed?"H3ll · Sealed":zone.name)+"</strong><em>"+zone.kind+"</em><span>"+zone.lore+(sealed?"<br>Requires all 20 keys.":"")+"</span>";
+        button.disabled=zone.name==="H3ll"&&player.keys<20;
         button.onclick=()=>travelToZone(zone);
         choices.appendChild(button);
       }
@@ -1661,10 +2555,6 @@
         showDialogue("Waystone","H3ll is sealed. Recover all 20 regional keys.");
         return;
       }
-      if(zone.name==="H3ll"&&nelsonRiftClosed){
-        showDialogue("Waystone","The secret Nelson rift has sealed. H3ll is closed until the regional quest restores it.");
-        return;
-      }
       document.getElementById("portalOverlay").style.display="none";
       document.getElementById("npcDialogue").style.display="none";
       const destination=waystonePosition(zone);
@@ -1673,6 +2563,7 @@
       enemyProjectiles.length=0;
       projectiles.length=0;
       currentZone=zone;
+      if(zone.name==="H3ll"&&player.keys>=20)startHellFinale();
       const nelson=npcs.find(npc=>npc.name==="Nelson");
       if(nelson&&nelson.following){
         nelson.x=player.x-48;
@@ -1709,6 +2600,8 @@
 
     function monsterDialogue(enemy) {
       if(enemy.isFinalBoss)return "I am The BCob, protector of H3ll. Nelson and the Mega Gate Key are mine.";
+      if(enemy.name==="Milan the Villain")return "A voice promised me a crown in my brother's voice. I turned the key, but I cannot remember choosing to.";
+      if(enemy.name==="Void Eye")return "The Overworld signal comes from below. It knew Astra's name before he was born.";
       if(enemy.isBoss&&!isBossActive(enemy))return "The smaller monsters still guard this region. Defeat all five to break my seal.";
       const lines={
         "Frossbite":"The ice answers to me. Step closer and freeze.",
@@ -1763,12 +2656,19 @@
           player.health=player.maxHealth;updateHUD();
         });
         addNpcChoice("Ask about the Mega Gate","Gather five keys in Frossbite, Fireball, Nuclear Zone, and Static Zone.");
+        addNpcChoice("Ask about Milan the Villain","He was my younger brother. He says a voice using my words made him open the reactor. I never said them. What happened that night?");
       }else if(npc.name==="Nelson"){
-        if(npc.trapped){
-          addNpcChoice("Ask about the key","The BCob guards the Mega Gate Key. Defeat it and free me.");
-          addNpcChoice("Ask for The BCob's weakness","Its eye fires three bolts in a fan. Keep moving sideways while they pass, then strike between volleys.");
-          addNpcChoice("Hear Nelson's warning","Astra, this rift is one-way after this return. Leave now, and you will never find this portal again.");
-          addNpcChoice("Return to the Market — close rift","This return closes both Nelson rifts permanently.",returnFromNelsonPortal);
+        if(npc.trapped&&!npc.awakened){
+          addNpcChoice("Ask about the key","The BCob guards the Mega Gate Key. At twenty keys, the waystone can breach H3ll again.");
+          addNpcChoice("Hear the relic clue","Beneath the twin broken arches of Frossbite lies the Relic of Ruin. Press E at its glow to crack the BCob's armor.");
+          addNpcChoice("Hear Nelson's warning","I can grant a brief speed blessing when you return to the Safe Zone. This rift allows one return only.",()=>{
+            nelsonBlessingPending=true;
+            saveUnderworldProgress();
+          });
+          addNpcChoice("Return to the Market — close rift","This return closes the secret rift permanently.",returnFromNelsonPortal);
+        }else if(npc.awakened){
+          addNpcChoice("Ask about the finale","I can break the BCob's armor if you found the relic, freeze it every 18 seconds, and raise a healing sanctuary every 25.");
+          addNpcChoice("Check the escort","Stay close. We need to reach the Mega Gate together.");
         }else{
           addNpcChoice(nelsonBlessed?"Blessing received":"Receive survivor's blessing",nelsonBlessed?"Your blessing is already protecting you.":"Nelson restores you and increases your maximum health by 20.",()=>{
             if(!nelsonBlessed){player.maxHealth+=20;player.health=Math.min(player.maxHealth,player.health+20);nelsonBlessed=true;updateHUD();}
@@ -1811,10 +2711,32 @@
           if(distance<nearestDistance){nearest=npc;nearestDistance=distance;}
         }
         for(const enemy of enemies){
-          if(enemy.dead||enemy.zone!==currentZone.name)continue;
+          if((enemy.dead&&!(enemy.name==="Jam Jam"&&trainingKeyFound))||enemy.zone!==currentZone.name)continue;
           const distance=Math.hypot(player.x-enemy.x,player.y-enemy.y);
           if(distance<nearestDistance){
-            nearest={name:enemy.name,isMonster:true,locked:!isBossActive(enemy)};
+            nearest={name:enemy.name,isMonster:true,locked:!isBossActive(enemy)&&!trainingKeyFound,isAlly:enemy.isAlly,useEmberKey:enemy.name==="Jam Jam"&&trainingKeyFound};
+            nearestDistance=distance;
+          }
+        }
+        if(currentZone.name==="Training Zone"&&!trainingKeyFound&&!trainingKeyUsed){
+          const keyDistance=Math.hypot(player.x-trainingKey.x,player.y-trainingKey.y);
+          if(keyDistance<nearestDistance){
+            nearest={name:"Ember Key",isTrainingKey:true};
+            nearestDistance=keyDistance;
+          }
+        }
+        if(currentZone.name==="Frossbite"&&!weaknessDiscovered){
+          const relicDistance=Math.hypot(player.x-hiddenRelic.x,player.y-hiddenRelic.y);
+          if(relicDistance<nearestDistance){
+            nearest={name:"Relic of Ruin",isRelic:true};
+            nearestDistance=relicDistance;
+          }
+        }
+        for(const fragment of loreFragments){
+          if(fragment.zone!==currentZone.name||discoveredLoreFragments.has(fragment.id))continue;
+          const distance=Math.hypot(player.x-fragment.x,player.y-fragment.y);
+          if(distance<nearestDistance){
+            nearest={name:fragment.title,isLoreFragment:true};
             nearestDistance=distance;
           }
         }
@@ -1822,6 +2744,11 @@
         if(currentZone.name==="Safe Zone"&&gateDistance<105){
           nearest={name:"Mega Gate",isGate:true};
           nearestDistance=gateDistance;
+        }
+        const chitDistance=Math.hypot(player.x-gateChit.x,player.y-gateChit.y);
+        if(currentZone.name==="Safe Zone"&&nelsonHasBeenRescued()&&chitDistance<82&&chitDistance<nearestDistance){
+          nearest={name:"Gate Chit",isGateChit:true};
+          nearestDistance=chitDistance;
         }
         const waystone=waystonePosition(currentZone);
         const portalDistance=Math.hypot(player.x-waystone.x,player.y-waystone.y);
@@ -1838,8 +2765,8 @@
         }
         if(currentZone.name==="Market"&&!nelsonRiftClosed&&!marketSecretPortal.closed&&nelsonVisitCount===0){
           const secretDistance=Math.hypot(player.x-marketSecretPortal.x,player.y-marketSecretPortal.y);
-          if(secretDistance<105)marketSecretPortal.discovered=true;
-          if(secretDistance<nearestDistance){
+          if(secretDistance<85)marketSecretPortal.discovered=true;
+          if(secretDistance<58&&secretDistance<nearestDistance){
             nearest={name:"Hidden Portal",isSecretPortal:true};
             nearestDistance=secretDistance;
           }
@@ -1849,9 +2776,15 @@
       prompt.style.display=nearest?"block":"none";
       if(nearest){
         if(nearest.isReturnPortal)prompt.innerHTML="Press <b>E</b> to return to the Market";
-        else if(nearest.isSecretPortal)prompt.innerHTML="Press <b>E</b> to enter the tiny portal";
+        else if(nearest.isSecretPortal)prompt.innerHTML="Press <b>E</b> to enter the hidden rift";
         else if(nearest.isPortal)prompt.innerHTML="Press <b>E</b> to travel";
+        else if(nearest.isLoreFragment)prompt.innerHTML="Press <b>E</b> to read "+nearest.name;
+        else if(nearest.isGateChit)prompt.innerHTML="Press <b>E</b> to read Nelson's chit";
         else if(nearest.isGate)prompt.innerHTML="Press <b>E</b> to use the Mega Gate";
+        else if(nearest.isRelic)prompt.innerHTML="Press <b>E</b> to claim the Relic of Ruin";
+        else if(nearest.isTrainingKey)prompt.innerHTML="Press <b>E</b> to claim the Ember Key";
+        else if(nearest.useEmberKey)prompt.innerHTML="Press <b>E</b> to use Ember Key on Jam Jam";
+        else if(nearest.isAlly)prompt.innerHTML="Press <b>E</b> to speak to "+nearest.name;
         else if(nearest.isMonster&&nearest.locked)prompt.innerHTML="Defeat 5 lesser monsters to awaken "+nearest.name;
         else if(nearest.isMonster)prompt.innerHTML="Press <b>E</b> to confront "+nearest.name;
         else prompt.innerHTML="Press <b>E</b> to speak to "+nearest.name;
@@ -1909,6 +2842,11 @@
       document.getElementById("marketOverlay").style.display="none";
       marketAutoOpened=true;
     };
+    document.getElementById("restartGameButton").onclick=()=>{
+      if(!confirm("Restart from hunter selection? All saved Underworld progress will be erased."))return;
+      localStorage.removeItem("underworldGameSaveV1");
+      location.reload();
+    };
 
     function usePotion() {
       if(!gameStarted)return;
@@ -1950,6 +2888,31 @@
       dialogueTimer=4.5;
     }
 
+    function nelsonHasBeenRescued(){
+      const nelson=npcs.find(npc=>npc.name==="Nelson");
+      return !!(nelson&&nelson.awakened&&nelson.following&&!nelson.trapped);
+    }
+
+    function gateChitText(){
+      return "Astra,\n\nThe four keys held one seal. Milan, my king's younger brother, opened the reactor after a voice promised him a crown in King Milan's voice. He says he cannot remember turning the key. Was that voice the BCob?\n\nWhen the seal broke, the roads fell apart and the Overworld vanished. The Sky-Spire now hears its signal from below. Nelson's ward was the last to fall.\n\nThe Gate says, 'WELCOME BACK, "+player.name+".' None of us has been here before. Why does it know you?\n\n—Nelson";
+    }
+
+    function openLoreNote(title,text,kicker){
+      document.getElementById("loreKicker").textContent=kicker;
+      document.getElementById("loreTitle").textContent=title;
+      document.getElementById("loreText").textContent=text;
+      document.getElementById("loreProgress").textContent="MEMORIES FOUND · "+discoveredLoreFragments.size+" / "+loreFragments.length;
+      document.getElementById("loreOverlay").style.display="flex";
+      keysPressed={};
+      document.getElementById("closeLoreNote").focus();
+    }
+
+    function closeLoreNote(){
+      document.getElementById("loreOverlay").style.display="none";
+      keysPressed={};
+    }
+    document.getElementById("closeLoreNote").onclick=closeLoreNote;
+
     function updateZoneUI() {
       document.documentElement.style.setProperty("--zone-accent",currentZone.accent);
       document.documentElement.style.setProperty("--zone-title",currentZone.name==="Safe Zone"?"#f5f2ff":"#fff");
@@ -1957,17 +2920,22 @@
       document.getElementById("zoneName").textContent=currentZone.name;
       document.getElementById("zoneIcon").textContent=currentZone.icon;
       document.getElementById("zoneKind").textContent=currentZone.kind;
+      document.getElementById("zoneLore").textContent=currentZone.name==="Fireball"&&fireballSanctuary
+        ?"Jam Jam's Ember Ward has calmed the volcano and turned this realm into a sanctuary."
+        :currentZone.lore||"Explore this region of the Underworld.";
+      document.getElementById("zoneThreat").textContent=currentZone.name==="Fireball"&&fireballSanctuary?"Sanctuary · Safe":currentZone.threat||"Unknown";
+      document.getElementById("zoneBoss").textContent=currentZone.name==="Fireball"&&jamJamAlly?"Jam Jam · Ally":currentZone.boss||"Uncharted";
       const dots=document.querySelectorAll("#keyDots i");
       const amount=zoneKeys[currentZone.name]||0;
       dots.forEach((dot,i)=>dot.classList.toggle("on",i<amount));
       const zoneObjectives={
         "Safe Zone":"Meet King Milan, recover, and use the portals to choose a region.",
         "Frossbite":amount<5?"Defeat "+(5-amount)+" more frost minion"+(5-amount===1?"":"s")+" to awaken Glacier Stalker.":"Glacier Stalker is awake. Defeat the boss, then cross the remaining regions.",
-        "Fireball":amount<5?"Defeat "+(5-amount)+" more volcanic minion"+(5-amount===1?"":"s")+" to awaken Jam Jam.":"Jam Jam is awake. Defeat the boss, then cross the remaining regions.",
+        "Fireball":jamJamAlly?"Jam Jam lifted the curse. The Fireball zone is safe, and he will support you against the BCob.":trainingKeyFound?"Take the Ember Key to Jam Jam and press E beside him.":trainingKeyUsed?"The Ember Key was used. Jam Jam is your ally.":amount<5?"Defeat "+(5-amount)+" more volcanic minion"+(5-amount===1?"":"s")+" to awaken Jam Jam.":"Jam Jam is awake. Find the Ember Key in the Training Zone and use it on him.",
         "Nuclear Zone":amount<5?"Defeat "+(5-amount)+" more irradiated minion"+(5-amount===1?"":"s")+" to awaken Milan the Villain.":"Milan the Villain is awake. Defeat the boss, then cross the remaining regions.",
         "Static Zone":amount<5?"Defeat "+(5-amount)+" more rift minion"+(5-amount===1?"":"s")+" to stabilize the seal.":"All 20 keys will unseal H3ll.",
-        "H3ll":megaGateKey?"Take Nelson to the Mega Gate in the Safe Zone.":player.keys<20?"Nelson knows The BCob's weakness. Recover all 20 keys to challenge it.":"Defeat The BCob and claim the Mega Gate Key.",
-        "Training Zone":"Practice your attacks on the training dummy.",
+        "H3ll":megaGateKey?"Take Nelson to the Mega Gate in the Safe Zone.":player.keys<20?"Nelson knows The BCob's weakness. Recover all 20 keys to challenge it.":hellFinalePhase===1?"Survive the army clash. Defeat half the champions to call King Milan. Press R to recover a stuck finale.":hellFinalePhase===2?"King Milan is breaking the horde. Hold on until the arena is clear. Press R to recover a stuck finale.":hellFinalePhase===3?"Face The BCob in the sealed arena. Nelson's powers support the duel. Press R to recover or reset the boss.":"Defeat The BCob and claim the Mega Gate Key.",
+        "Training Zone":trainingKeyFound?"Ember Key secured; all five Fireball keys recovered. Take it to Jam Jam in the Fireball zone and press E beside him.":trainingKeyUsed?"Training complete. Jam Jam has the Ember Key and will join the BCob fight.":"Practice on the dummy, then explore the training grounds for the glowing Ember Key.",
         "Market":marketSecretPortal.discovered?"Restock and use the tiny rift to return to Nelson.":"Browse the merchant's wares and search the stalls for a hidden rift."
       };
       if(currentZone.name==="Safe Zone"){
@@ -1978,9 +2946,11 @@
             :"Recover all 20 regional keys to unlock H3ll.";
       }
       document.getElementById("objective").textContent=zoneObjectives[currentZone.name]||"Explore the Underworld.";
-      const dangerous=["Frossbite","Fireball","Nuclear Zone","Static Zone","H3ll"].includes(currentZone.name);
+      const dangerous=["Frossbite","Nuclear Zone","Static Zone","H3ll"].includes(currentZone.name)||(currentZone.name==="Fireball"&&!fireballSanctuary);
       document.getElementById("dangerVignette").style.display=dangerous?"block":"none";
       document.getElementById("dangerLabel").style.display=dangerous?"block":"none";
+      document.getElementById("dangerVignette").classList.toggle("radiation",currentZone.name==="Nuclear Zone");
+      document.getElementById("dangerLabel").classList.toggle("radiation",currentZone.name==="Nuclear Zone");
       if(dangerous){
         const bossNames={Frossbite:"Frost Creatures Moving",Fireball:"Volcanic Monsters Hunting", "Nuclear Zone":"Radiation Hostiles Active","Static Zone":"RIFT SEAL — 5 MINIONS REMAIN","H3ll":player.keys<20?nelsonSecretAccess?"NELSON'S REFUGE — BCob SEALED":"HELL SEALED — RECOVER 20 KEYS":"HELL BOSS TERRITORY — THE BCob"};
         document.getElementById("dangerLabel").textContent=bossNames[currentZone.name]||"Threat Detected";
@@ -2024,6 +2994,33 @@
 
     function normalizeAngle(a) { while(a>Math.PI)a-=Math.PI*2; while(a<-Math.PI)a+=Math.PI*2; return a; }
 
+    function drawLavaFlows(){
+      const time=performance.now()/1000;
+      ctx.save();
+      ctx.lineCap="round";
+      for(let flow=0;flow<7;flow++){
+        ctx.beginPath();
+        for(let segment=0;segment<=10;segment++){
+          const x=1640+flow*150+Math.sin(segment*.82+time*.16+flow)*55;
+          const y=-2390+segment*185;
+          const point=worldToScreen(x,y);
+          if(segment===0)ctx.moveTo(point.x,point.y);
+          else ctx.lineTo(point.x,point.y);
+        }
+        ctx.strokeStyle="#391b16";ctx.lineWidth=34;ctx.shadowColor="#ff3d1c";ctx.shadowBlur=24;ctx.stroke();
+        ctx.strokeStyle="#f04a1d";ctx.lineWidth=19;ctx.shadowColor="#ff6a24";ctx.shadowBlur=18;ctx.stroke();
+        ctx.strokeStyle="#ffbd50";ctx.lineWidth=4;ctx.shadowColor="#ffe17a";ctx.shadowBlur=14;ctx.stroke();
+        for(let ember=0;ember<2;ember++){
+          const step=(time*(1.2+ember*.35)+flow*1.7+ember*5)%10;
+          const x=1640+flow*150+Math.sin(step*.82+time*.16+flow)*55;
+          const point=worldToScreen(x,-2390+step*185);
+          ctx.fillStyle="#fff0a1";ctx.shadowColor="#ff8b38";ctx.shadowBlur=15;
+          ctx.beginPath();ctx.arc(point.x,point.y,2.5+ember,0,Math.PI*2);ctx.fill();
+        }
+      }
+      ctx.restore();
+    }
+
     function drawGround() {
       const backdrop=ctx.createLinearGradient(0,0,0,h);
       backdrop.addColorStop(0,"#090b13");backdrop.addColorStop(.52,"#101018");backdrop.addColorStop(1,"#07070c");
@@ -2035,17 +3032,145 @@
       for(let x=-3600;x<=3600;x+=60) { const sx=camX+x; if(sx>-50&&sx<w+50){ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx,h);ctx.stroke();} }
       for(let y=-3000;y<=3000;y+=60) { const sy=camY+y; if(sy>-50&&sy<h+50){ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(w,sy);ctx.stroke();} }
       drawGroundDetails();
+      if(currentZone.name==="Fireball")drawLavaFlows();
       for(const z of zones) {
         const p=worldToScreen(z.x,z.y);
         const grd=ctx.createRadialGradient(p.x,p.y,20,p.x,p.y,z.radius);
         grd.addColorStop(0,z.accent+"55");grd.addColorStop(.55,z.color+"88");grd.addColorStop(1,z.color+"05");
         ctx.fillStyle=grd;ctx.beginPath();ctx.arc(p.x,p.y,z.radius,0,Math.PI*2);ctx.fill();
         ctx.strokeStyle=z.accent+"55";ctx.setLineDash([12,16]);ctx.beginPath();ctx.arc(p.x,p.y,z.radius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+        if(z.name==="Safe Zone"){
+          ctx.save();
+          ctx.strokeStyle=barrierFlash>0?"rgba(191,224,255,.95)":"rgba(255,224,151,.36)";
+          ctx.lineWidth=barrierFlash>0?5:2;
+          ctx.shadowColor=barrierFlash>0?"#a9dfff":"#f5ca67";
+          ctx.shadowBlur=barrierFlash>0?28:12;
+          ctx.beginPath();ctx.arc(p.x,p.y,z.radius,0,Math.PI*2);ctx.stroke();
+          ctx.restore();
+        }
         ctx.fillStyle="rgba(245,241,231,.78)";ctx.font="900 16px Trebuchet MS";ctx.textAlign="center";
         ctx.fillText(z.name.toUpperCase(),p.x,p.y-z.radius+60);
       }
       drawWorldLandmarks();
+      drawMarketRiftAndCrates();
+      drawRelicLandmark();
+      if(currentZone.name==="Training Zone"&&!trainingKeyUsed)drawTrainingKey();
+      drawLoreFragments();
+      drawGateChit();
+      if(currentZone.name==="H3ll"&&player.keys<20)drawShieldedLedge();
+      if(currentZone.name==="H3ll"&&hellFinalePhase===3&&!megaGateKey)drawHellfireArena();
       drawZoneAtmosphere();
+    }
+
+    function drawMarketRiftAndCrates() {
+      if(currentZone.name!=="Market"||nelsonRiftClosed||marketSecretPortal.closed||nelsonVisitCount>0)return;
+      const p=worldToScreen(marketSecretPortal.x,marketSecretPortal.y);
+      if(p.x<-100||p.x>w+100||p.y<-100||p.y>h+100)return;
+      const pulse=.55+.45*Math.sin(performance.now()/205);
+      ctx.save();
+      ctx.globalAlpha=.12+pulse*.22;
+      ctx.fillStyle="#b49cff";ctx.shadowColor="#b49cff";ctx.shadowBlur=12;
+      ctx.beginPath();ctx.ellipse(p.x,p.y,5+pulse*2,10+pulse*3,0,0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha=.7;
+      ctx.fillStyle="#47382d";ctx.strokeStyle="#92704a";ctx.lineWidth=2;
+      ctx.fillRect(p.x-43,p.y-2,30,27);ctx.strokeRect(p.x-43,p.y-2,30,27);
+      ctx.fillRect(p.x+15,p.y-8,30,33);ctx.strokeRect(p.x+15,p.y-8,30,33);
+      ctx.fillStyle="#5c4832";ctx.fillRect(p.x-28,p.y-27,31,26);ctx.strokeRect(p.x-28,p.y-27,31,26);
+      ctx.strokeStyle="#b8945e";ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(p.x-40,p.y+10);ctx.lineTo(p.x-16,p.y+10);ctx.moveTo(p.x+18,p.y+6);ctx.lineTo(p.x+42,p.y+6);
+      ctx.moveTo(p.x-25,p.y-17);ctx.lineTo(p.x,p.y-17);ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawRelicLandmark() {
+      if(currentZone.name!=="Frossbite"||weaknessDiscovered)return;
+      const p=worldToScreen(hiddenRelic.x,hiddenRelic.y);
+      if(p.x<-70||p.x>w+70||p.y<-70||p.y>h+70)return;
+      const pulse=.7+.3*Math.sin(performance.now()/310);
+      ctx.save();
+      ctx.shadowColor="#b9f1ff";ctx.shadowBlur=17*pulse;
+      ctx.strokeStyle="#99dce8";ctx.lineWidth=4;
+      for(const side of [-1,1]){
+        ctx.beginPath();ctx.moveTo(p.x+side*54,p.y+24);ctx.lineTo(p.x+side*54,p.y-27);
+        ctx.lineTo(p.x+side*43,p.y-42);ctx.lineTo(p.x+side*30,p.y-14);ctx.stroke();
+      }
+      ctx.fillStyle="rgba(89,210,236,.18)";ctx.beginPath();ctx.ellipse(p.x,p.y+4,35,18,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="#b8f4ff";ctx.beginPath();ctx.moveTo(p.x,p.y-26);ctx.lineTo(p.x+14,p.y-4);ctx.lineTo(p.x,p.y+14);ctx.lineTo(p.x-14,p.y-4);ctx.closePath();ctx.fill();
+      ctx.restore();
+    }
+
+    function drawTrainingKey(){
+      const p=worldToScreen(trainingKey.x,trainingKey.y);
+      if(p.x<-70||p.x>w+70||p.y<-80||p.y>h+80)return;
+      const pulse=.72+.28*Math.sin(performance.now()/260);
+      ctx.save();
+      ctx.globalAlpha=.6+pulse*.4;ctx.shadowColor="#ffe17a";ctx.shadowBlur=24*pulse;
+      ctx.fillStyle="rgba(255,215,109,.18)";ctx.beginPath();ctx.arc(p.x,p.y,31*pulse,0,Math.PI*2);ctx.fill();
+      ctx.translate(p.x,p.y);ctx.rotate(performance.now()/900);
+      ctx.fillStyle="#ffe9a4";ctx.strokeStyle="#fff7d3";ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(0,-17);ctx.lineTo(13,-3);ctx.lineTo(0,17);ctx.lineTo(-13,-3);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.fillStyle="#8b6735";ctx.fillRect(-2,1,4,13);ctx.fillRect(1,8,7,3);
+      ctx.restore();
+      ctx.fillStyle="#fff3c1";ctx.font="900 9px Trebuchet MS";ctx.textAlign="center";ctx.shadowColor="#173c32";ctx.shadowBlur=6;
+      ctx.fillText(trainingKeyFound?"EMBER KEY · CLAIMED":"EMBER KEY",p.x,p.y+34);ctx.shadowBlur=0;
+    }
+
+    function drawLoreFragments(){
+      for(const fragment of loreFragments){
+        if(fragment.zone!==currentZone.name||discoveredLoreFragments.has(fragment.id))continue;
+        const p=worldToScreen(fragment.x,fragment.y);
+        if(p.x<-50||p.x>w+50||p.y<-50||p.y>h+50)continue;
+        const pulse=.55+.45*Math.sin(performance.now()/270+fragment.id.length);
+        ctx.save();ctx.translate(p.x,p.y);ctx.rotate(-.08);
+        ctx.globalAlpha=.35+pulse*.25;ctx.shadowColor="#b6e4c2";ctx.shadowBlur=18*pulse;
+        ctx.fillStyle="rgba(176,216,185,.24)";ctx.beginPath();ctx.arc(0,0,23,0,Math.PI*2);ctx.fill();
+        ctx.globalAlpha=.9;ctx.fillStyle="#d8d1b3";ctx.strokeStyle="#f1e7c7";ctx.lineWidth=1.5;
+        ctx.fillRect(-10,-13,20,26);ctx.strokeRect(-10,-13,20,26);
+        ctx.strokeStyle="#53695c";ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(-6,-6);ctx.lineTo(6,-6);ctx.moveTo(-6,0);ctx.lineTo(6,0);ctx.moveTo(-6,6);ctx.lineTo(3,6);ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function drawGateChit(){
+      if(currentZone.name!=="Safe Zone"||!nelsonHasBeenRescued())return;
+      const p=worldToScreen(gateChit.x,gateChit.y);
+      if(p.x<-50||p.x>w+50||p.y<-50||p.y>h+50)return;
+      const pulse=.7+.3*Math.sin(performance.now()/330);
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(-.12);
+      ctx.globalAlpha=.45+pulse*.3;ctx.fillStyle="#e4d59e";ctx.shadowColor="#f4dc8c";ctx.shadowBlur=16*pulse;
+      ctx.fillRect(-12,-16,24,32);ctx.shadowBlur=0;
+      ctx.strokeStyle="#fff0bd";ctx.lineWidth=1.5;ctx.strokeRect(-12,-16,24,32);
+      ctx.strokeStyle="#6a5a38";ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(-7,-8);ctx.lineTo(7,-8);ctx.moveTo(-7,-2);ctx.lineTo(7,-2);ctx.moveTo(-7,4);ctx.lineTo(4,4);ctx.stroke();
+      ctx.restore();
+      ctx.fillStyle="#fff0bd";ctx.font="900 8px Trebuchet MS";ctx.textAlign="center";ctx.shadowColor="#000";ctx.shadowBlur=5;
+      ctx.fillText("NELSON'S CHIT",p.x,p.y+27);ctx.shadowBlur=0;
+    }
+
+    function drawShieldedLedge() {
+      const p=worldToScreen(-3190,-260);
+      ctx.save();
+      const glow=ctx.createRadialGradient(p.x,p.y,20,p.x,p.y,270);
+      glow.addColorStop(0,"rgba(145,188,216,.23)");glow.addColorStop(1,"rgba(90,115,157,0)");
+      ctx.fillStyle=glow;ctx.beginPath();ctx.ellipse(p.x,p.y,270,190,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="rgba(44,55,72,.72)";ctx.strokeStyle="rgba(174,209,234,.75)";ctx.lineWidth=3;
+      ctx.beginPath();ctx.ellipse(p.x,p.y,205,132,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.setLineDash([8,8]);ctx.strokeStyle="rgba(198,229,255,.55)";ctx.lineWidth=2;
+      ctx.beginPath();ctx.ellipse(p.x,p.y,220,145,0,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle="#d6e8f3";ctx.font="900 10px Trebuchet MS";ctx.textAlign="center";
+      ctx.fillText("NELSON'S SHIELDED LEDGE",p.x,p.y+105);
+      ctx.restore();
+    }
+
+    function drawHellfireArena() {
+      const p=worldToScreen(-2800,0);
+      ctx.save();
+      ctx.shadowColor="#ff573d";ctx.shadowBlur=26;ctx.strokeStyle="rgba(255,91,55,.88)";ctx.lineWidth=8;
+      ctx.beginPath();ctx.arc(p.x,p.y,590,0,Math.PI*2);ctx.stroke();
+      ctx.shadowBlur=0;ctx.strokeStyle="rgba(255,205,126,.64)";ctx.lineWidth=2;ctx.setLineDash([14,12]);
+      ctx.beginPath();ctx.arc(p.x,p.y,606,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+      ctx.restore();
     }
 
     function drawGroundDetails() {
@@ -2076,9 +3201,32 @@
         ctx.ellipse(p.x,p.y,size*1.7,size*.72,(i%7)*.3,0,Math.PI*2);
         ctx.fill();
       }
+      if(details.name==="Nuclear Zone"){
+        const time=performance.now()/1000;
+        for(let i=0;i<14;i++){
+          const x=(i*827+340)%7200-3600;
+          const y=(i*613+210)%6000-3000;
+          const p=worldToScreen(x,y);
+          if(p.x<-70||p.x>w+70||p.y<-50||p.y>h+50)continue;
+          const pulse=.5+.5*Math.sin(time*1.2+i*1.7);
+          const radius=9+(i%4)*3;
+          const pool=ctx.createRadialGradient(p.x,p.y,1,p.x,p.y,radius*1.9);
+          pool.addColorStop(0,"rgba(177,255,49,.55)");
+          pool.addColorStop(.45,"rgba(113,200,33,.3)");
+          pool.addColorStop(1,"rgba(113,200,33,0)");
+          ctx.globalAlpha=.65+pulse*.25;
+          ctx.fillStyle=pool;
+          ctx.beginPath();ctx.ellipse(p.x,p.y,radius*1.9,radius*.95,(i%5)*.37,0,Math.PI*2);ctx.fill();
+          ctx.globalAlpha=.22+pulse*.2;
+          ctx.strokeStyle="#baff48";ctx.lineWidth=1.2;
+          ctx.beginPath();ctx.ellipse(p.x,p.y,radius*1.15,radius*.58,(i%5)*.37,0,Math.PI*2);ctx.stroke();
+        }
+        ctx.globalAlpha=1;
+      }
       ctx.globalAlpha=.55;
       ctx.strokeStyle=details.accent;
       ctx.lineWidth=1;
+      if(details.name==="Nuclear Zone"){ctx.shadowColor="#a8ff35";ctx.shadowBlur=5;}
       for(let i=0;i<24;i++){
         const x=(i*617%7200)-3600;
         const y=(i*431%6000)-3000;
@@ -2092,12 +3240,17 @@
         }else if(details.name==="Fireball"||details.name==="H3ll"){
           ctx.moveTo(p.x-radius,p.y);ctx.lineTo(p.x-radius*.25,p.y-radius*.18);
           ctx.lineTo(p.x+radius*.1,p.y+radius*.35);ctx.lineTo(p.x+radius,p.y-radius*.1);
+        }else if(details.name==="Nuclear Zone"){
+          ctx.moveTo(p.x-radius,p.y+radius*.25);ctx.lineTo(p.x-radius*.2,p.y);
+          ctx.lineTo(p.x+radius*.15,p.y-radius*.55);ctx.lineTo(p.x+radius,p.y-radius*.2);
+          ctx.moveTo(p.x+radius*.15,p.y-radius*.55);ctx.lineTo(p.x+radius*.35,p.y+radius*.55);
         }else{
           ctx.moveTo(p.x-radius,p.y);ctx.lineTo(p.x+radius,p.y);
           ctx.moveTo(p.x,p.y-radius*.7);ctx.lineTo(p.x+radius*.35,p.y+radius*.7);
         }
         ctx.stroke();
       }
+      ctx.shadowBlur=0;
       ctx.restore();
     }
 
@@ -2232,24 +3385,83 @@
           ctx.beginPath();ctx.arc(x,(y+h)%h,1.5+(i%3),0,Math.PI*2);ctx.fill();
         }
       }else if(currentZone.name==="Nuclear Zone"){
-        for(let i=0;i<10;i++){
-          const x=(i*193+71)%w,y=(i*127+43)%h;
-          ctx.strokeStyle="rgba(197,240,91,.16)";
-          ctx.lineWidth=1;
-          ctx.beginPath();ctx.ellipse(x,y,18+(i%3)*8,7+(i%2)*4,0,0,Math.PI*2);ctx.stroke();
+        const radiationHaze=ctx.createRadialGradient(w*.52,h*.5,Math.min(w,h)*.08,w*.52,h*.5,Math.max(w,h)*.72);
+        radiationHaze.addColorStop(0,"rgba(155,255,43,.035)");
+        radiationHaze.addColorStop(.7,"rgba(114,203,32,.08)");
+        radiationHaze.addColorStop(1,"rgba(84,151,27,.2)");
+        ctx.fillStyle=radiationHaze;ctx.fillRect(0,0,w,h);
+        for(let i=0;i<16;i++){
+          const x=(i*193+71+Math.sin(time*.35+i)*24)%w;
+          const y=(i*127+43+Math.cos(time*.28+i*1.3)*16)%h;
+          const pulse=.5+.5*Math.sin(time*1.7+i*1.4);
+          ctx.globalAlpha=.16+pulse*.17;
+          ctx.strokeStyle="#aaff3b";
+          ctx.shadowColor="#9bff24";ctx.shadowBlur=8;
+          ctx.lineWidth=1+(i%2)*.5;
+          ctx.beginPath();ctx.ellipse(x,y,19+(i%3)*9,8+(i%2)*5,Math.sin(time*.22+i)*.12,0,Math.PI*2);ctx.stroke();
         }
+        ctx.shadowBlur=0;
+        for(let i=0;i<38;i++){
+          const x=(i*137+59+Math.sin(time*.42+i*1.9)*17)%w;
+          const y=((i*89+time*(9+i%5)*5)%h+h)%h;
+          const pulse=.5+.5*Math.sin(time*2.1+i*2.6);
+          ctx.globalAlpha=.24+pulse*.42;
+          ctx.fillStyle=i%4===0?"#d8ff68":"#91ff32";
+          ctx.shadowColor="#86ff24";ctx.shadowBlur=8+pulse*5;
+          ctx.beginPath();ctx.arc(x,y,1.3+(i%4)*.65,0,Math.PI*2);ctx.fill();
+        }
+        ctx.shadowBlur=0;
+        ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="44px Segoe UI Symbol";
+        for(let i=0;i<8;i++){
+          const x=(i*211+91+Math.sin(time*.2+i)*12)%w,y=(i*137+59+Math.cos(time*.24+i)*10)%h;
+          const pulse=.5+.5*Math.sin(time*1.1+i*1.8);
+          ctx.globalAlpha=.08+pulse*.09;
+          ctx.fillStyle="#d7ff70";ctx.shadowColor="#aaff28";ctx.shadowBlur=20;
+          ctx.fillText("☢",x,y);
+        }
+        ctx.shadowBlur=0;ctx.globalAlpha=1;
       }else if(currentZone.name==="Static Zone"){
         ctx.fillStyle="rgba(219,140,255,.07)";
         for(let i=0;i<9;i++){
           const y=(i*83+Math.floor(time*6)%83)%h;
           ctx.fillRect(0,y,w,(i%3)+1);
         }
+        ctx.lineCap="round";
+        for(let bolt=0;bolt<6;bolt++){
+          const flash=Math.max(0,Math.sin(time*4.2+bolt*2.7));
+          if(flash<.78)continue;
+          const startX=(bolt*193+Math.sin(time*.7+bolt)*85+w)%w;
+          const startY=(bolt*113+time*37)%h;
+          ctx.globalAlpha=(flash-.78)*3.2;
+          ctx.strokeStyle=bolt%2?"#f0c4ff":"#8df8ff";
+          ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=18;ctx.lineWidth=1.5+flash*1.5;
+          ctx.beginPath();ctx.moveTo(startX,startY);
+          for(let segment=1;segment<=6;segment++){
+            ctx.lineTo(startX+Math.sin(time*12+bolt*5+segment*2.4)*24,startY+segment*19);
+          }
+          ctx.stroke();
+        }
+        ctx.globalAlpha=1;ctx.shadowBlur=0;
       }else if(currentZone.name==="Market"){
         const glow=ctx.createRadialGradient(w/2,h/2,10,w/2,h/2,Math.max(w,h)*.65);
         glow.addColorStop(0,"rgba(242,200,93,.09)");
         glow.addColorStop(1,"rgba(242,200,93,0)");
         ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
       }
+      const fogColors={
+        "Safe Zone":["rgba(245,202,103,.025)","rgba(125,164,218,.08)"],
+        "Market":["rgba(242,200,93,.035)","rgba(77,42,23,.16)"],
+        "Frossbite":["rgba(127,221,186,.025)","rgba(49,120,107,.2)"],
+        "Fireball":["rgba(255,195,102,.025)","rgba(156,63,38,.22)"],
+        "Nuclear Zone":["rgba(174,255,48,.045)","rgba(72,111,25,.3)"],
+        "Static Zone":["rgba(211,144,255,.025)","rgba(67,42,95,.22)"],
+        "H3ll":["rgba(255,110,72,.025)","rgba(112,27,34,.24)"],
+        "Training Zone":["rgba(116,227,195,.02)","rgba(43,105,90,.16)"]
+      };
+      const tint=fogColors[currentZone.name]||fogColors["Safe Zone"];
+      const fog=ctx.createRadialGradient(w/2,h/2,Math.min(w,h)*.18,w/2,h/2,Math.max(w,h)*.74);
+      fog.addColorStop(0,tint[0]);fog.addColorStop(1,tint[1]);
+      ctx.fillStyle=fog;ctx.fillRect(0,0,w,h);
       ctx.restore();
     }
 
@@ -2405,11 +3617,13 @@
     }
 
     function monsterPalette(enemy) {
-      if(enemy.zone==="Frossbite") return {skin:"#89b7c4",dark:"#345b69",light:"#d9f7ff",accent:"#bdefff"};
-      if(enemy.zone==="Fireball") return {skin:"#9a4a32",dark:"#451e20",light:"#ed9a58",accent:"#ff9a4d"};
-      if(enemy.zone==="Nuclear Zone") return {skin:"#7a8d3d",dark:"#313d20",light:"#c8df72",accent:"#d0f06b"};
-      if(enemy.zone==="Static Zone") return {skin:"#74618a",dark:"#302840",light:"#c2a2df",accent:"#e1aaff"};
-      return {skin:"#718078",dark:"#303a36",light:"#b7c0a7",accent:"#d4d9ba"};
+      let palette;
+      if(enemy.zone==="Frossbite")palette={skin:"#89b7c4",dark:"#345b69",light:"#d9f7ff",accent:"#bdefff"};
+      else if(enemy.zone==="Fireball")palette={skin:"#9a4a32",dark:"#451e20",light:"#ed9a58",accent:"#ff9a4d"};
+      else if(enemy.zone==="Nuclear Zone")palette={skin:"#7a8d3d",dark:"#313d20",light:"#c8df72",accent:"#d0f06b"};
+      else if(enemy.zone==="Static Zone")palette={skin:"#74618a",dark:"#302840",light:"#c2a2df",accent:"#e1aaff"};
+      else palette={skin:"#718078",dark:"#303a36",light:"#b7c0a7",accent:"#d4d9ba"};
+      return {...palette,accent:enemy.energyColor||palette.accent};
     }
 
     function ellipse(cx,cy,rx,ry,rotation=0) {
@@ -2515,18 +3729,35 @@
       ellipse(2*scale,0,5*scale,7*scale);ctx.fill();
       ctx.fillStyle="#0b0910";
       ellipse(3*scale,0,2*scale,4*scale);ctx.fill();
+      if(enemy.isFinalBoss){
+        ctx.strokeStyle="#29202a";ctx.lineWidth=7*scale;ctx.lineCap="round";
+        ctx.beginPath();ctx.moveTo(-12*scale,-8*scale);ctx.lineTo(-23*scale,-27*scale);ctx.lineTo(-34*scale,-43*scale);
+        ctx.moveTo(12*scale,-8*scale);ctx.lineTo(23*scale,-27*scale);ctx.lineTo(34*scale,-43*scale);ctx.stroke();
+        ctx.strokeStyle="#ff8b67";ctx.lineWidth=2*scale;
+        ctx.beginPath();ctx.moveTo(-12*scale,2*scale);ctx.lineTo(-4*scale,-4*scale);ctx.lineTo(-8*scale,-13*scale);
+        ctx.moveTo(12*scale,4*scale);ctx.lineTo(7*scale,-2*scale);ctx.lineTo(13*scale,-10*scale);
+        ctx.moveTo(-3*scale,10*scale);ctx.lineTo(1*scale,5*scale);ctx.lineTo(6*scale,12*scale);ctx.stroke();
+      }
     }
 
     function drawMonster(enemy,x,y,scale) {
       const palette=monsterPalette(enemy);
       drawShadow(x,y,27*scale);
+      if(enemy.icon!=="🎯"){
+        const pulse=1+Math.sin(performance.now()/220+enemy.x*.01)*.12;
+        ctx.save();
+        ctx.globalAlpha=enemy.isAlly ? .12 : .17;
+        ctx.fillStyle=palette.accent;ctx.shadowColor=palette.accent;ctx.shadowBlur=enemy.isAlly?18:13;
+        ctx.beginPath();ctx.arc(x,y,27*scale*pulse,0,Math.PI*2);ctx.fill();
+        ctx.globalAlpha=enemy.isAlly?.75:.5;ctx.lineWidth=enemy.isAlly?2.5:1.5;
+        ctx.strokeStyle=palette.accent;ctx.beginPath();ctx.arc(x,y,30*scale*pulse,0,Math.PI*2);ctx.stroke();
+        ctx.restore();
+      }
       ctx.save();
       ctx.translate(x,y);
       ctx.rotate(enemy.angle);
 
-      if(enemy.hit>0){
-        ctx.globalCompositeOperation="screen";
-      }
+      if(enemy.hit>0)ctx.filter="brightness(0) invert(1)";
 
       if(enemy.icon==="🎯"){
         ctx.fillStyle="#7f5a32";ctx.fillRect(-22*scale,-18*scale,44*scale,36*scale);
@@ -2569,10 +3800,8 @@
       }
 
       if(enemy.hit>0){
-        ctx.globalCompositeOperation="source-over";
-        ctx.strokeStyle="rgba(255,255,255,.9)";
-        ctx.lineWidth=3*scale;
-        ellipse(0,0,29*scale,38*scale);ctx.stroke();
+        ctx.filter="none";ctx.strokeStyle="rgba(255,255,255,.95)";
+        ctx.lineWidth=3*scale;ellipse(0,0,enemy.radius*1.35*scale,enemy.radius*1.35*scale);ctx.stroke();
       }
       ctx.restore();
     }
@@ -2688,25 +3917,44 @@
           ctx.beginPath();ctx.moveTo(p.x-18,p.y-12);ctx.lineTo(p.x+18,p.y-12);
           ctx.moveTo(p.x-18,p.y+7);ctx.lineTo(p.x+18,p.y+7);ctx.stroke();
         }
+        if(npc.finaleAlly){
+          ctx.save();ctx.strokeStyle="rgba(255,226,137,.78)";ctx.shadowColor="#ffe08a";ctx.shadowBlur=22;
+          ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(p.x,p.y+13,42,52,0,0,Math.PI*2);ctx.stroke();ctx.restore();
+        }
       }
       for(const enemy of enemies) {
-        if(enemy.dead||(!isBossActive(enemy)&&!enemy.isBoss)||Math.hypot(player.x-enemy.x,player.y-enemy.y)>900) continue;
+        const sealedBCob=enemy.isFinalBoss&&currentZone.name==="H3ll";
+        if(enemy.dead||(!isBossActive(enemy)&&!enemy.isBoss&&!sealedBCob)||Math.hypot(player.x-enemy.x,player.y-enemy.y)>900) continue;
+        if(hellFinalePhase===3&&enemy.zone==="H3ll"&&!enemy.isFinalBoss&&!enemy.isFinaleEcho&&!enemy.isAlly)continue;
         const p=worldToScreen(enemy.x,enemy.y);
         const boss=enemy.isBoss||enemy.isFinalBoss;
-        const scale=enemy.isFinalBoss?2:enemy.isBoss?1.45:1;
+        const scale=enemy.isFinalBoss?2.25:enemy.isBoss?1.45:1;
+        if(enemy.skillState==="brute-windup"){
+          const progress=1-enemy.windup/1.2;
+          ctx.save();ctx.fillStyle="rgba(255,46,54,.15)";ctx.strokeStyle="rgba(255,65,65,.9)";
+          ctx.shadowColor="#ff343c";ctx.shadowBlur=18;ctx.lineWidth=3;
+          ctx.beginPath();ctx.arc(p.x,p.y,150,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+          ctx.save();ctx.strokeStyle="#ffc0a1";ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,150,-Math.PI/2,-Math.PI/2+Math.PI*2*progress);ctx.stroke();ctx.restore();
+        }else if(enemy.skillState==="shadow-windup"){
+          ctx.save();ctx.strokeStyle="#ffc76d";ctx.lineWidth=4;ctx.setLineDash([6,6]);
+          ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+Math.cos(enemy.angle)*210,p.y+Math.sin(enemy.angle)*210);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+        }else if(enemy.skillState==="dreadguard-windup"||enemy.skillState==="dreadguard-charge"){
+          ctx.save();ctx.strokeStyle="#f1ca70";ctx.lineWidth=7;ctx.beginPath();
+          ctx.arc(p.x,p.y,enemy.radius+12,enemy.angle-.75,enemy.angle+.75);ctx.stroke();ctx.restore();
+        }
         drawMonster(enemy,p.x,p.y,scale);
-        ctx.fillStyle=boss?(isBossActive(enemy)?"#ff5968":"#a59a8f"):"#f2eee4";
+        ctx.fillStyle=enemy.isAlly?"#ffcc7b":boss?(isBossActive(enemy)?"#ff5968":"#a59a8f"):"#f2eee4";
         ctx.font=(boss?"900 13":"900 11")+"px Trebuchet MS";ctx.textAlign="center";
         ctx.shadowColor="#000";ctx.shadowBlur=6;
-        ctx.fillText(boss&&!isBossActive(enemy)?"SEALED · "+enemy.name:enemy.name,p.x,p.y-(48*scale+8));
+        ctx.fillText(enemy.isAlly?"ALLY · "+enemy.name:boss&&!isBossActive(enemy)?"SEALED · "+enemy.name:enemy.name,p.x,p.y-(48*scale+8));
         ctx.shadowBlur=0;
         const healthY=p.y-40*scale;
         ctx.fillStyle="rgba(0,0,0,.8)";ctx.fillRect(p.x-31*scale,healthY-1,62*scale,7);
         ctx.fillStyle="#351018";ctx.fillRect(p.x-30*scale,healthY,60*scale,5);
         ctx.fillStyle=boss?"#ff6570":"#e84a57";ctx.fillRect(p.x-30*scale,healthY,60*scale*Math.max(0,enemy.health/enemy.maxHealth),5);
-        ctx.fillStyle=boss&&!isBossActive(enemy)?"#aaa":"#f4c765";ctx.font="900 9px Trebuchet MS";ctx.textAlign="center";
+        ctx.fillStyle=enemy.isAlly?"#ffcc7b":boss&&!isBossActive(enemy)?"#aaa":"#f4c765";ctx.font="900 9px Trebuchet MS";ctx.textAlign="center";
         ctx.shadowColor="#000";ctx.shadowBlur=5;
-        ctx.fillText(boss&&!isBossActive(enemy)?"DEFEAT 5 MINIONS":"POW "+enemy.power+" • HP "+Math.max(0,Math.ceil(enemy.health)),p.x,p.y-26*scale);
+        ctx.fillText(enemy.isAlly?"EMBER SUPPORT":boss&&!isBossActive(enemy)?"DEFEAT 5 MINIONS":"POW "+enemy.power+" • HP "+Math.max(0,Math.ceil(enemy.health)),p.x,p.y-26*scale);
         ctx.shadowBlur=0;
       }
     }
@@ -2770,19 +4018,6 @@
         ctx.fillStyle="#fff";ctx.font="900 8px Trebuchet MS";ctx.textAlign="center";ctx.shadowColor="#000";ctx.shadowBlur=5;
         ctx.fillText("WAYSTONE · E",p.x,p.y+39);ctx.shadowBlur=0;
       }
-      if(currentZone.name==="Market"&&!nelsonRiftClosed&&!marketSecretPortal.closed&&nelsonVisitCount===0&&marketSecretPortal.discovered){
-        const hidden=worldToScreen(marketSecretPortal.x,marketSecretPortal.y);
-        if(hidden.x>-55&&hidden.x<w+55&&hidden.y>-55&&hidden.y<h+55){
-          const pulse=1+Math.sin(performance.now()/210)*.12;
-          const glow=ctx.createRadialGradient(hidden.x,hidden.y,1,hidden.x,hidden.y,24);
-          glow.addColorStop(0,"rgba(157,122,255,.35)");glow.addColorStop(1,"rgba(157,122,255,0)");
-          ctx.fillStyle=glow;ctx.beginPath();ctx.arc(hidden.x,hidden.y,24,0,Math.PI*2);ctx.fill();
-          ctx.strokeStyle="#b7a3ff";ctx.lineWidth=2;
-          ctx.beginPath();ctx.ellipse(hidden.x,hidden.y-2,7*pulse,12*pulse,0,0,Math.PI*2);ctx.stroke();
-          ctx.fillStyle="rgba(70,49,116,.7)";ctx.beginPath();ctx.ellipse(hidden.x,hidden.y-2,4,9,0,0,Math.PI*2);ctx.fill();
-          ctx.fillStyle="#ded5ff";ctx.beginPath();ctx.arc(hidden.x,hidden.y+13,1.8,0,Math.PI*2);ctx.fill();
-        }
-      }
       if(currentZone.name==="H3ll"&&!nelsonRiftClosed&&!hellReturnPortal.closed&&nelsonSecretAccess){
         const exit=worldToScreen(hellReturnPortal.x,hellReturnPortal.y);
         if(exit.x>-65&&exit.x<w+65&&exit.y>-70&&exit.y<h+70){
@@ -2814,6 +4049,9 @@
         ctx.translate(p.x,p.y);
         ctx.rotate(Math.atan2(projectile.dy,projectile.dx));
         ctx.shadowColor=projectile.color;ctx.shadowBlur=12;ctx.fillStyle=projectile.color;
+        ctx.globalAlpha=.72;ctx.lineWidth=projectile.radius*.7;ctx.lineCap="round";
+        ctx.beginPath();ctx.moveTo(-projectile.radius*2.7,0);ctx.lineTo(-projectile.radius*.55,0);ctx.strokeStyle=projectile.color;ctx.stroke();
+        ctx.globalAlpha=1;
         if(projectile.shape==="orb"){
           ctx.beginPath();ctx.arc(0,0,projectile.radius,0,Math.PI*2);ctx.fill();
           ctx.fillStyle="#e8ffff";ctx.beginPath();ctx.arc(-2,-2,projectile.radius*.35,0,Math.PI*2);ctx.fill();
@@ -2835,6 +4073,9 @@
         const pulse=1+Math.sin(performance.now()/90+p.x)*.18;
         ctx.save();
         ctx.shadowColor=projectile.color;ctx.shadowBlur=18;
+        ctx.strokeStyle=projectile.color;ctx.globalAlpha=.56;ctx.lineWidth=projectile.radius*.65;ctx.lineCap="round";
+        ctx.beginPath();ctx.moveTo(p.x-projectile.dx*projectile.radius*2.4,p.y-projectile.dy*projectile.radius*2.4);ctx.lineTo(p.x-projectile.dx*projectile.radius*.5,p.y-projectile.dy*projectile.radius*.5);ctx.stroke();
+        ctx.globalAlpha=1;
         ctx.fillStyle=projectile.color;
         ctx.beginPath();ctx.arc(p.x,p.y,projectile.radius*pulse,0,Math.PI*2);ctx.fill();
         ctx.fillStyle="rgba(255,235,194,.9)";
@@ -2859,12 +4100,57 @@
           ctx.beginPath();
           ctx.arc(p.x,p.y,effect.radius*(.72+progress*.65),0,Math.PI*2);
           ctx.stroke();
+        }else if(effect.kind==="barrier"){
+          const progress=1-alpha;
+          ctx.lineWidth=4*alpha;ctx.beginPath();
+          ctx.arc(p.x,p.y,effect.radius*(.55+progress*.75),0,Math.PI*2);ctx.stroke();
+        }else if(effect.kind==="slash"){
+          ctx.translate(p.x,p.y);ctx.rotate(effect.angle);
+          ctx.lineWidth=8*alpha;ctx.lineCap="round";
+          ctx.beginPath();ctx.arc(0,0,effect.radius,-.78,.78);ctx.stroke();
+          ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,effect.radius-8,-.72,.72);ctx.stroke();
         }else{
           ctx.beginPath();
           ctx.arc(p.x,p.y,effect.size*alpha,0,Math.PI*2);
           ctx.fill();
         }
         ctx.restore();
+      }
+      if(activeSkillEffect){
+        const p=worldToScreen(activeSkillEffect.x,activeSkillEffect.y);
+        const progress=1-activeSkillEffect.life/activeSkillEffect.maxLife;
+        ctx.save();
+        ctx.globalAlpha=Math.max(.12,1-progress);
+        ctx.shadowBlur=22;
+        if(activeSkillEffect.kind==="nova"){
+          ctx.strokeStyle="#c59aff";ctx.shadowColor="#b47cff";ctx.lineWidth=7*(1-progress)+2;
+          ctx.beginPath();ctx.arc(p.x,p.y,activeSkillEffect.radius*progress,0,Math.PI*2);ctx.stroke();
+          ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,activeSkillEffect.radius*progress*.88,0,Math.PI*2);ctx.stroke();
+        }else if(activeSkillEffect.kind==="slam"){
+          ctx.translate(p.x,p.y);ctx.rotate(activeSkillEffect.angle);
+          ctx.fillStyle="rgba(255,211,110,.25)";ctx.strokeStyle="#ffe19a";ctx.lineWidth=3;
+          ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,activeSkillEffect.radius,-.72,.72);ctx.closePath();ctx.fill();ctx.stroke();
+          ctx.beginPath();ctx.arc(0,0,activeSkillEffect.radius*.78,0,Math.PI*2);ctx.stroke();
+        }else if(activeSkillEffect.kind==="decoy"){
+          ctx.strokeStyle="#b975ec";ctx.shadowColor="#8b45bc";ctx.lineWidth=3;
+          ctx.beginPath();ctx.arc(p.x,p.y,activeSkillEffect.radius*(.7+progress*.45),0,Math.PI*2);ctx.stroke();
+          ctx.fillStyle="rgba(78,39,112,.35)";ctx.beginPath();ctx.ellipse(p.x,p.y,20,28,0,0,Math.PI*2);ctx.fill();
+        }
+        ctx.restore();
+      }
+      if(sanctuaryField){
+        const p=worldToScreen(sanctuaryField.x,sanctuaryField.y);
+        const pulse=1+Math.sin(performance.now()/180)*.04;
+        ctx.save();ctx.globalAlpha=.65;ctx.strokeStyle="#ffe79b";ctx.shadowColor="#ffd971";ctx.shadowBlur=22;ctx.lineWidth=4;
+        ctx.beginPath();ctx.ellipse(p.x,p.y+9,sanctuaryField.radius*pulse,sanctuaryField.radius*.48*pulse,0,0,Math.PI*2);ctx.stroke();
+        ctx.fillStyle="rgba(255,216,105,.1)";ctx.fill();ctx.restore();
+      }
+      for(const number of damageNumbers){
+        const p=worldToScreen(number.x,number.y);
+        ctx.save();ctx.globalAlpha=number.life/number.maxLife;
+        ctx.font=(number.critical?"900 22px":"900 16px")+" Trebuchet MS";
+        ctx.textAlign="center";ctx.lineWidth=3;ctx.strokeStyle="#160d14";ctx.strokeText(number.value,p.x,p.y);
+        ctx.fillStyle=number.color;ctx.shadowColor=number.color;ctx.shadowBlur=10;ctx.fillText(number.value,p.x,p.y);ctx.restore();
       }
     }
 
@@ -2945,7 +4231,7 @@
 
     function draw() {
       ctx.save();
-      if(shake>0)ctx.translate((Math.random()-.5)*8,(Math.random()-.5)*8);
+      if(shake>0)ctx.translate((Math.random()-.5)*shakePower,(Math.random()-.5)*shakePower);
       drawGround();drawPortal();drawEnemyProjectiles();drawWorldCharacters();drawCombatEffects();drawProjectiles();
       const p=worldToScreen(player.x,player.y);
       drawCharacter(p.x,p.y,player.icon,player.angle,1,false,player.appearance||appearance,player.walkPhase,player.isMoving,attackFlash>0,player.invulnerable);drawAttack();
@@ -2976,11 +4262,28 @@
         appearance:{...appearance},
         zoneKeys:{...zoneKeys},
         currentZone:currentZone.name,
-        zoneState:{nelsonSecretAccess,nelsonRiftClosed,nelsonVisitCount,megaGateKey,hasEscaped,nelsonBlessed,marketSecretPortalClosed:marketSecretPortal.closed===true},
+        zoneState:{nelsonSecretAccess,nelsonRiftClosed,nelsonVisitCount,megaGateKey,hasEscaped,nelsonBlessed,marketSecretPortalClosed:marketSecretPortal.closed===true,trainingKeyFound,trainingKeyUsed,jamJamAlly,fireballSanctuary,loreFragmentsFound:[...discoveredLoreFragments]},
         nelson:{
           active:npcs.find(npc=>npc.name==="Nelson").active,
           trapped:npcs.find(npc=>npc.name==="Nelson").trapped,
-          following:npcs.find(npc=>npc.name==="Nelson").following
+          following:npcs.find(npc=>npc.name==="Nelson").following,
+          awakened:npcs.find(npc=>npc.name==="Nelson").awakened,
+          x:npcs.find(npc=>npc.name==="Nelson").x,
+          y:npcs.find(npc=>npc.name==="Nelson").y,
+          zone:npcs.find(npc=>npc.name==="Nelson").zone
+        },
+        finale:{
+          phase:hellFinalePhase,armySpawned:finaleArmySpawned,kills:finaleKills,
+          armyTotal:finaleArmyTotal,kingArrived:kingMilanArrived,bossStarted:finaleBossStarted,
+          chronoTimer:nelsonChronoTimer,sanctuaryTimer:nelsonSanctuaryTimer,
+          weaknessDiscovered,blessingPending:nelsonBlessingPending,blessingTime:nelsonBlessingTime,
+          boss:(()=>{const boss=enemies.find(enemy=>enemy.isFinalBoss);return boss?{health:boss.health,dead:boss.dead,attackCooldown:boss.attackCooldown}:null;})(),
+          echoes:enemies.filter(enemy=>enemy.isFinaleEcho).map(enemy=>({
+            name:enemy.name,icon:enemy.icon,x:enemy.x,y:enemy.y,spawnX:enemy.spawnX,spawnY:enemy.spawnY,
+            power:enemy.power,health:enemy.health,maxHealth:enemy.maxHealth,zone:enemy.zone,speed:enemy.speed,
+            radius:enemy.radius,dead:enemy.dead,skillKind:enemy.skillKind,skillCooldown:enemy.skillCooldown,
+            stunned:enemy.stunned,shieldTime:enemy.shieldTime,windup:enemy.windup,skillState:enemy.skillState,aggro:enemy.aggro
+          }))
         }
       };
       localStorage.setItem("underworldGameSaveV1",JSON.stringify(save));
@@ -2999,6 +4302,8 @@
         }
         if(save.zoneKeys)Object.assign(zoneKeys,save.zoneKeys);
         if(save.currentZone)currentZone=zones.find(z=>z.name===save.currentZone)||zones[0];
+        lastZoneName=currentZone.name;
+        hellUnsealed=player.keys>=20;
         if(currentZone.name==="Market")marketAutoOpened=true;
         if(save.zoneState){
           nelsonSecretAccess=!!save.zoneState.nelsonSecretAccess;
@@ -3009,10 +4314,50 @@
           nelsonBlessed=!!save.zoneState.nelsonBlessed;
           marketSecretPortal.closed=!!save.zoneState.marketSecretPortalClosed;
           marketSecretPortal.discovered=!marketSecretPortal.closed&&!nelsonRiftClosed&&nelsonVisitCount===0;
+          trainingKeyFound=!!save.zoneState.trainingKeyFound;
+          trainingKeyUsed=!!save.zoneState.trainingKeyUsed;
+          jamJamAlly=!!save.zoneState.jamJamAlly;
+          fireballSanctuary=!!save.zoneState.fireballSanctuary||jamJamAlly;
+          for(const fragmentId of save.zoneState.loreFragmentsFound||[])discoveredLoreFragments.add(fragmentId);
+          if(fireballSanctuary){
+            for(const enemy of enemies){
+              if(enemy.zone!=="Fireball")continue;
+              enemy.aggro=false;
+              if(enemy.name==="Jam Jam"){enemy.isAlly=true;enemy.dead=false;}
+              else{enemy.dead=true;enemy.respawn=Infinity;}
+            }
+          }
         }
         if(save.nelson){
           const nelson=npcs.find(npc=>npc.name==="Nelson");
           Object.assign(nelson,save.nelson);
+        }
+        if(save.finale){
+          hellFinalePhase=Number(save.finale.phase)||0;
+          finaleArmySpawned=!!save.finale.armySpawned;
+          finaleKills=Number(save.finale.kills)||0;
+          finaleArmyTotal=Number(save.finale.armyTotal)||0;
+          kingMilanArrived=!!save.finale.kingArrived;
+          finaleBossStarted=!!save.finale.bossStarted;
+          nelsonChronoTimer=Number(save.finale.chronoTimer)||18;
+          nelsonSanctuaryTimer=Number(save.finale.sanctuaryTimer)||25;
+          weaknessDiscovered=!!save.finale.weaknessDiscovered;
+          nelsonBlessingPending=!!save.finale.blessingPending;
+          nelsonBlessingTime=Number(save.finale.blessingTime)||0;
+          for(const state of save.finale.echoes||[]){
+            addEnemy(state.name,state.icon,state.spawnX,state.spawnY,state.power,state.maxHealth,state.zone,state.speed,{
+              isBoss:true,isFinaleEcho:true,keyBearer:false,radius:state.radius,skillKind:state.skillKind
+            });
+            Object.assign(enemies[enemies.length-1],state);
+          }
+          if(save.finale.boss){
+            const boss=enemies.find(enemy=>enemy.isFinalBoss);
+            Object.assign(boss,save.finale.boss);
+          }
+          if(kingMilanArrived){
+            const king=npcs.find(npc=>npc.name==="King Milan");
+            king.zone="H3ll";king.active=true;king.finaleAlly=true;king.x=-2800;king.y=hellFinalePhase>=3?-780:-80;
+          }
         }
         return true;
       }catch(error){
@@ -3027,9 +4372,9 @@
       if(loadUnderworldProgress()){
         document.getElementById("menuScreen").style.display="none";
         document.getElementById("hud").style.display="block";
-        document.getElementById("controls").style.display=innerWidth<700?"flex":"none";
+        document.getElementById("controls").style.display=innerWidth<700?"grid":"none";
         gameStarted=true;
-        setBackgroundMusicMode("gameplay");
+        setBackgroundMusicMode(currentZone.name);
         updateHUD();
         updateZoneUI();
         showDialogue("Astra","Progress restored. The Underworld remembers you.");
@@ -3042,16 +4387,28 @@
       document.getElementById("gameOver").style.display="none";
       currentZone=zones.find(z=>z.name==="Market");
       player.x=0;player.y=-2350;
+      player.dodgeTime=0;
+      player.invulnerable=2;
+      player.isMoving=false;
+      keysPressed={};
+      updateZoneUI();
+      updateHUD();
       showDialogue("Market Keeper","Respawn complete. Potions and weapons are available.");
       saveUnderworldProgress();
     };
     document.getElementById("continueButton").onclick=()=>{
       document.getElementById("megaGate").style.display="none";
-      player.x=0;
-      player.y=0;
-      player.health=player.maxHealth;
-      updateHUD();
-      showDialogue("Mega Gate","You escaped the Underworld. The gate seals behind you.");
+      document.getElementById("kingdomEnding").style.display="flex";
+      hasEscaped=true;
+      saveUnderworldProgress();
+    };
+    document.getElementById("endingContinueButton").onclick=()=>{
+      document.getElementById("kingdomStory").style.display="none";
+      document.getElementById("kingdomFinale").style.display="block";
+    };
+    document.getElementById("playAgainButton").onclick=()=>{
+      localStorage.removeItem("underworldGameSaveV1");
+      location.href=location.pathname;
     };
   </script>
 </body>
